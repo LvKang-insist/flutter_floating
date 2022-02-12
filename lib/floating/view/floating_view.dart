@@ -1,5 +1,6 @@
 import 'package:floating/floating/floating.dart';
 import 'package:floating/floating/control/hide_control.dart';
+import 'package:floating/floating/listener/floating_listener.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -20,9 +21,10 @@ class FloatingView extends StatefulWidget {
   final double? width;
   final double? height;
   final HideController _hideControl;
+  final List<FloatingListener> _listener;
 
-  const FloatingView(
-      this.child, this.floatingData, this.isPosCache, this._hideControl,
+  const FloatingView(this.child, this.floatingData, this.isPosCache,
+      this._hideControl, this._listener,
       {Key? key, this.width, this.height})
       : super(key: key);
 
@@ -76,12 +78,16 @@ class _FloatingViewState extends State<FloatingView>
   _content() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
+
+      onTapDown: (details) => _notifyDown(_left, _top),
+      onTapCancel: () => _notifyUp(_left, _top),
       //滑动
       onPanUpdate: (DragUpdateDetails details) {
         _left += details.delta.dx;
         _top += details.delta.dy;
         _opacity = 0.3;
         _changePosition();
+        _notifyMove(_left, _top);
       },
       //滑动结束
       onPanEnd: (DragEndDetails details) {
@@ -93,7 +99,7 @@ class _FloatingViewState extends State<FloatingView>
       onPanCancel: () {
         _changePosition();
       },
-      child: Container(
+      child: SizedBox(
         width: _width,
         height: _height,
         child: UnconstrainedBox(child: widget.child),
@@ -155,6 +161,7 @@ class _FloatingViewState extends State<FloatingView>
       setState(() {
         _floatingData.left = _left;
         _floatingData.top = _top;
+        _notifyMove(_left, _top);
       });
     });
 
@@ -162,6 +169,7 @@ class _FloatingViewState extends State<FloatingView>
       if (status == AnimationStatus.completed) {
         Future.delayed(const Duration(milliseconds: 200), () {
           setState(() => _opacity = 1.0);
+          _notifyMoveEnd(_left, _top);
         });
       }
     });
@@ -235,6 +243,30 @@ class _FloatingViewState extends State<FloatingView>
     }
     _floatingData.left = _left;
     _floatingData.top = _top;
+  }
+
+  _notifyMove(double x, double y) {
+    for (var element in widget._listener) {
+      element.moveListener?.call(x, y);
+    }
+  }
+
+  _notifyMoveEnd(double x, double y) {
+    for (var element in widget._listener) {
+      element.moveEndListener?.call(x, y);
+    }
+  }
+
+  _notifyDown(double x, double y) {
+    for (var element in widget._listener) {
+      element.downListener?.call(x, y);
+    }
+  }
+
+  _notifyUp(double x, double y) {
+    for (var element in widget._listener) {
+      element.upListener?.call(x, y);
+    }
   }
 
   @override
