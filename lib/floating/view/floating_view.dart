@@ -1,10 +1,10 @@
 import 'package:floating/floating/floating.dart';
 import 'package:floating/floating/control/hide_control.dart';
 import 'package:floating/floating/listener/floating_listener.dart';
+import 'package:floating/floating/utils/floating_log.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-
 import '../data/floating_data.dart';
 import '../enum/floating_slide_type.dart';
 
@@ -22,9 +22,10 @@ class FloatingView extends StatefulWidget {
   final double? height;
   final HideController _hideControl;
   final List<FloatingListener> _listener;
+  final FloatingLog _log;
 
   const FloatingView(this.child, this.floatingData, this.isPosCache,
-      this._hideControl, this._listener,
+      this._hideControl, this._listener, this._log,
       {Key? key, this.width, this.height})
       : super(key: key);
 
@@ -47,7 +48,8 @@ class _FloatingViewState extends State<FloatingView>
 
   late double _height;
 
-  double _parentWidget = 0; //记录屏幕或者父组件宽度，用来判断拖拽停后回归左边还是右边
+  double _parentWidth = 0; //记录屏幕或者父组件宽度
+  double _parentHeight = 0; //记录屏幕或者父组件宽度
 
   double _opacity = 1.0; // 悬浮组件透明度
 
@@ -135,20 +137,20 @@ class _FloatingViewState extends State<FloatingView>
     double needMoveLength = 0;
 
     //计算靠边的距离
-    if (centerX <= _parentWidget / 2) {
+    if (centerX <= _parentWidth / 2) {
       needMoveLength = _left;
     } else {
       //靠右边的距离
-      needMoveLength = (_parentWidget - _left - _width);
+      needMoveLength = (_parentWidth - _left - _width);
     }
     //根据滑动距离计算滑动时间
-    double parent = (needMoveLength / (_parentWidget / 2.0));
+    double parent = (needMoveLength / (_parentWidth / 2.0));
     int time = (600 * parent).ceil();
 
-    if (centerX <= _parentWidget / 2.0) {
+    if (centerX <= _parentWidth / 2.0) {
       toPositionX = 0; //回到左边缘
     } else {
-      toPositionX = _parentWidget - _width; //回到右边缘
+      toPositionX = _parentWidth - _width; //回到右边缘
     }
 
     _controller.dispose();
@@ -190,7 +192,8 @@ class _FloatingViewState extends State<FloatingView>
     } else {
       setSlide();
     }
-    _parentWidget = MediaQuery.of(context).size.width;
+    _parentWidth = MediaQuery.of(context).size.width;
+    _parentHeight = MediaQuery.of(context).size.height;
     _isInitPosition = true;
   }
 
@@ -205,13 +208,38 @@ class _FloatingViewState extends State<FloatingView>
               duration: const Duration(milliseconds: 300),
               child: Offstage(
                 offstage: isHide,
-                child: _contentWidget,
+                child: OrientationBuilder(builder: (context, orientation) {
+                  checkScreenChange();
+                  return _contentWidget;
+                }),
               )),
           left: _left,
           top: _top,
         )
       ],
     );
+  }
+  ///判断屏幕是否发生改变
+  checkScreenChange() {
+    var width = MediaQuery.of(context).size.width;
+    var height = MediaQuery.of(context).size.height;
+    if (width != _parentWidth || height != _parentHeight) {
+      setState(() {
+        if (_floatingData.slideType == FloatingSlideType.onLeftAndTop ||
+            _floatingData.slideType == FloatingSlideType.onLeftAndBottom) {
+          _left = 0;
+        } else {
+          _left = width - _width;
+        }
+        if (height > _parentHeight) {
+          _top = _top * (height / _parentHeight);
+        } else {
+          _top = _top / (_parentHeight / height);
+        }
+        _parentWidth = width;
+        _parentHeight = height;
+      });
+    }
   }
 
   setSlide() {
@@ -246,26 +274,44 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   _notifyMove(double x, double y) {
+    widget._log.log("移动 X:$x Y:$y");
     for (var element in widget._listener) {
       element.moveListener?.call(x, y);
     }
   }
 
   _notifyMoveEnd(double x, double y) {
+    widget._log.log("移动结束 X:$x Y:$y");
     for (var element in widget._listener) {
       element.moveEndListener?.call(x, y);
     }
   }
 
   _notifyDown(double x, double y) {
+    widget._log.log("按下 X:$x Y:$y");
     for (var element in widget._listener) {
       element.downListener?.call(x, y);
     }
   }
 
   _notifyUp(double x, double y) {
+    widget._log.log("抬起 X:$x Y:$y");
     for (var element in widget._listener) {
       element.upListener?.call(x, y);
+    }
+  }
+
+  @override
+  void setState(VoidCallback fn) {
+    if (mounted) {
+      final schedulerPhase = SchedulerBinding.instance?.schedulerPhase;
+      if (schedulerPhase == SchedulerPhase.persistentCallbacks) {
+        SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
+          super.setState(fn);
+        });
+      } else {
+        super.setState(fn);
+      }
     }
   }
 

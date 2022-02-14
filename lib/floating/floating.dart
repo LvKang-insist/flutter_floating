@@ -1,4 +1,5 @@
 import 'package:floating/floating/listener/floating_listener.dart';
+import 'package:floating/floating/utils/floating_log.dart';
 import 'package:floating/floating/view/floating_view.dart';
 import 'package:floating/floating/control/hide_control.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,6 +26,9 @@ class Floating {
 
   final List<FloatingListener> _listener = [];
 
+  late FloatingLog _log;
+  String logKey = "";
+
   ///是否真正显示
   bool get isShowing => _isShowing;
   bool _isShowing = false;
@@ -45,17 +49,19 @@ class Floating {
     double? width,
     double? height,
     FloatingSlideType slideType = FloatingSlideType.onRightAndBottom,
-    bool isPosCache = false,
     double? top,
     double? left,
     double? right,
     double? bottom,
+    bool isPosCache = false,
+    bool isShowLog = true,
   }) {
     _floatingData = FloatingData(slideType,
         left: left, right: right, top: top, bottom: bottom);
+    _log = FloatingLog(isShowLog);
     _hideController = HideController();
     _floatingView = FloatingView(
-        child, _floatingData, isPosCache, _hideController, _listener,
+        child, _floatingData, isPosCache, _hideController, _listener, _log,
         width: width, height: height);
   }
 
@@ -70,7 +76,7 @@ class Floating {
       });
       _navigatorKey!.currentState?.overlay?.insert(_overlayEntry);
       _isShowing = true;
-      _notifyShow();
+      _notifyOpen();
     });
   }
 
@@ -105,25 +111,34 @@ class Floating {
     _listener.contains(listener) ? null : _listener.add(listener);
   }
 
+  ///设置 [FloatingLog] 标识
+  setLogKey(String key) {
+    _log.logKey = key;
+  }
+
   _notifyClose() {
+    _log.log("关闭");
     for (var listener in _listener) {
       listener.closeListener?.call();
     }
   }
 
-  _notifyShow() {
+  _notifyOpen() {
+    _log.log("打开");
     for (var listener in _listener) {
       listener.openListener?.call();
     }
   }
 
   _notifyHideFloating() {
+    _log.log("隐藏");
     for (var listener in _listener) {
       listener.hideFloatingListener?.call();
     }
   }
 
   _notifyShowFloating() {
+    _log.log("显示");
     for (var listener in _listener) {
       listener.showFloatingListener?.call();
     }

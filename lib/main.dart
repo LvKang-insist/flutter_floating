@@ -77,14 +77,6 @@ class _MyHomePageState extends State<MyHomePage> {
             slideType: FloatingSlideType.onRightAndTop,
             right: 0,
             top: 150));
-    var twoListener = FloatingListener()
-      ..openListener = () {
-        print('显示2');
-      }
-      ..closeListener = () {
-        print('关闭2');
-      };
-    floatingManager.getFloating("2").addFloatingListener(twoListener);
     floatingManager.createFloating(
         "3",
         Floating(MyApp._navigatorKey, const FloatingIncrement(),
@@ -93,14 +85,6 @@ class _MyHomePageState extends State<MyHomePage> {
             slideType: FloatingSlideType.onLeftAndBottom,
             left: 0,
             bottom: 0));
-
-    var fourListener = FloatingListener()
-      ..showFloatingListener = () {
-        print('显示4');
-      }
-      ..hideFloatingListener = () {
-        print('隐藏4');
-      };
     floatingManager.createFloating(
         "4",
         Floating(MyApp._navigatorKey, const FloatingIncrement(),
@@ -109,7 +93,6 @@ class _MyHomePageState extends State<MyHomePage> {
             slideType: FloatingSlideType.onRightAndBottom,
             right: 0,
             bottom: 0));
-    floatingManager.getFloating("4").addFloatingListener(fourListener);
   }
 
   void _incrementCounter() {

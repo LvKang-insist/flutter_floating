@@ -21,7 +21,7 @@ class FloatingManager {
   Floating createFloating(Object key, Floating floating) {
     bool contains = _floatingCache.containsKey(key);
     if (!contains) {
-      _floatingCache[key] = floating;
+      _floatingCache[key] = floating..setLogKey(key.toString());
     }
     return _floatingCache[key]!;
   }
