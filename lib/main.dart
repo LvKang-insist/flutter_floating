@@ -50,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
             left: 0,
             top: 150));
     var oneListener = FloatingListener()
-      ..showListener = () {
+      ..openListener = () {
         print('显示1');
       }
       ..closeListener = () {
@@ -78,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
             right: 0,
             top: 150));
     var twoListener = FloatingListener()
-      ..showListener = () {
+      ..openListener = () {
         print('显示2');
       }
       ..closeListener = () {
@@ -137,16 +137,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 "显示/关闭左上角悬浮窗",
                 () {
                   var floating = floatingManager.getFloating("1");
-                  floating.isShowing ? floating.close() : floating.show();
+                  floating.isShowing ? floating.close() : floating.open();
                 },
               ),
               ButtonWidget("显示/关闭右上角悬浮窗", () {
                 var floating = floatingManager.getFloating("2");
-                floating.isShowing ? floating.close() : floating.show();
+                floating.isShowing ? floating.close() : floating.open();
               }),
               ButtonWidget("显示/关闭左下角悬浮窗", () {
                 var floating = floatingManager.getFloating("3");
-                floating.isShowing ? floating.close() : floating.show();
+                floating.isShowing ? floating.close() : floating.open();
               }),
               ButtonWidget("显示/隐藏右下角悬浮窗", () {
                 var floating = floatingManager.getFloating("4");
@@ -155,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ? floating.hideFloating()
                       : floating.showFloating();
                 } else {
-                  floating.show();
+                  floating.open();
                   isOpen = true;
                 }
               }),

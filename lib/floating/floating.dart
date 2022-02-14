@@ -37,7 +37,7 @@ class Floating {
   ///[top],[left],[left],[bottom] 对应 [slideType]，
   ///例如设置[slideType]为[FloatingSlideType.onRightAndBottom]，则需要传入[bottom]和[right]
   ///
-  ///[isPosCache]启用之后当调用之后 [Floating.close] 重新调用 [Floating.show]
+  ///[isPosCache]启用之后当调用之后 [Floating.close] 重新调用 [Floating.open]
   ///后会保持之前的位置
   Floating(
     this._navigatorKey,
@@ -59,10 +59,10 @@ class Floating {
         width: width, height: height);
   }
 
-  ///显示悬浮窗
+  ///打开悬浮窗
   ///此方法配合 [close]方法进行使用，调用[close]之后在调用此方法会丢失 Floating 状态
   ///否则请使用 [hideFloating] 进行隐藏，使用 [showFloating]进行显示，而不是使用 [close]
-  show() {
+  open() {
     if (_isShowing) return;
     SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
       _overlayEntry = OverlayEntry(builder: (context) {
@@ -113,7 +113,7 @@ class Floating {
 
   _notifyShow() {
     for (var listener in _listener) {
-      listener.showListener?.call();
+      listener.openListener?.call();
     }
   }
 
