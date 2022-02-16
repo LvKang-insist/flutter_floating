@@ -5,6 +5,7 @@ import 'package:floating/floating/manager/floating_manager.dart';
 import 'package:floating/floating_increment.dart';
 import 'package:floating/test.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'button_widget.dart';
 
@@ -41,34 +42,41 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    floatingManager.createFloating(
-        "1",
-        Floating(MyApp._navigatorKey, const FloatingIncrement(),
-            width: 50,
-            height: 50,
-            slideType: FloatingSlideType.onLeftAndTop,
-            left: 0,
-            top: 150));
-    var oneListener = FloatingListener()
-      ..openListener = () {
-        print('显示1');
-      }
-      ..closeListener = () {
-        print('关闭1');
-      }
-      ..downListener = (x, y) {
-        print('按下1');
-      }
-      ..upListener = (x, y) {
-        print('抬起1');
-      }
-      ..moveListener = (x, y) {
-        print('移动 $x  $y  1');
-      }
-      ..moveEndListener = (x, y) {
-        print('移动结束 $x  $y  1');
-      };
-    floatingManager.getFloating("1").addFloatingListener(oneListener);
+    //因为获取状态栏高度，所以延时一帧
+    SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
+      floatingManager.createFloating(
+          "1",
+          Floating(MyApp._navigatorKey, const FloatingIncrement(),
+              width: 50,
+              height: 50,
+              slideType: FloatingSlideType.onLeftAndTop,
+              left: 0,
+              top: 150,
+              //禁止滑动到状态栏
+              slideTopHeight: MediaQuery.of(context).padding.top,
+              slideBottomHeight: 100));
+      var oneListener = FloatingListener()
+        ..openListener = () {
+          print('显示1');
+        }
+        ..closeListener = () {
+          print('关闭1');
+        }
+        ..downListener = (x, y) {
+          print('按下1');
+        }
+        ..upListener = (x, y) {
+          print('抬起1');
+        }
+        ..moveListener = (x, y) {
+          print('移动 $x  $y  1');
+        }
+        ..moveEndListener = (x, y) {
+          print('移动结束 $x  $y  1');
+        };
+      floatingManager.getFloating("1").addFloatingListener(oneListener);
+    });
+
     floatingManager.createFloating(
         "2",
         Floating(MyApp._navigatorKey, const FloatingIncrement(),
@@ -76,6 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
             height: 50,
             slideType: FloatingSlideType.onRightAndTop,
             right: 0,
+            isShowLog: false,
             top: 150));
     floatingManager.createFloating(
         "3",

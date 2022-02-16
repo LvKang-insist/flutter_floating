@@ -23,10 +23,16 @@ class FloatingView extends StatefulWidget {
   final HideController _hideControl;
   final List<FloatingListener> _listener;
   final FloatingLog _log;
+  final double slideTopHeight;
+  final double slideBottomHeight;
 
   const FloatingView(this.child, this.floatingData, this.isPosCache,
       this._hideControl, this._listener, this._log,
-      {Key? key, this.width, this.height})
+      {Key? key,
+      this.width,
+      this.height,
+      this.slideTopHeight = 0,
+      this.slideBottomHeight = 0})
       : super(key: key);
 
   @override
@@ -119,10 +125,10 @@ class _FloatingViewState extends State<FloatingView>
       _left = w - _width;
     }
 
-    if (_top < 0) _top = 0;
+    if (_top < widget.slideTopHeight) _top = widget.slideTopHeight;
     var t = MediaQuery.of(context).size.height;
-    if (_top >= t - _width) {
-      _top = t - _width;
+    if (_top >= t - _height - widget.slideBottomHeight) {
+      _top = t - _height - widget.slideBottomHeight;
     }
     setState(() {
       _floatingData.left = _left;
@@ -219,6 +225,7 @@ class _FloatingViewState extends State<FloatingView>
       ],
     );
   }
+
   ///判断屏幕是否发生改变
   checkScreenChange() {
     var width = MediaQuery.of(context).size.width;

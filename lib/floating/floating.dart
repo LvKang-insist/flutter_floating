@@ -26,6 +26,8 @@ class Floating {
 
   final List<FloatingListener> _listener = [];
 
+  final double slideTopHeight;
+  final double slideBottomHeight;
   late FloatingLog _log;
   String logKey = "";
 
@@ -55,6 +57,8 @@ class Floating {
     double? bottom,
     bool isPosCache = false,
     bool isShowLog = true,
+    this.slideTopHeight = 0,
+    this.slideBottomHeight = 0,
   }) {
     _floatingData = FloatingData(slideType,
         left: left, right: right, top: top, bottom: bottom);
@@ -62,7 +66,10 @@ class Floating {
     _hideController = HideController();
     _floatingView = FloatingView(
         child, _floatingData, isPosCache, _hideController, _listener, _log,
-        width: width, height: height);
+        width: width,
+        height: height,
+        slideTopHeight: slideTopHeight,
+        slideBottomHeight: slideBottomHeight);
   }
 
   ///打开悬浮窗
