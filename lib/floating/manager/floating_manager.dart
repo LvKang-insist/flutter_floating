@@ -43,4 +43,9 @@ class FloatingManager {
     _floatingCache.forEach((key, value) => value.close());
     _floatingCache.clear();
   }
+
+  ///悬浮窗数量
+  int floatingSize() {
+    return _floatingCache.length;
+  }
 }

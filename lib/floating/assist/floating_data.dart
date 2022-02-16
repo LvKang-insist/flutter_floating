@@ -1,4 +1,4 @@
-import '../enum/floating_slide_type.dart';
+import 'floating_slide_type.dart';
 
 /// @name：floating_data
 /// @package：

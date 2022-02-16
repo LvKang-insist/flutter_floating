@@ -1,12 +1,12 @@
 import 'package:floating/floating/floating.dart';
-import 'package:floating/floating/control/hide_control.dart';
+import 'package:floating/floating/assist/hide_control.dart';
 import 'package:floating/floating/listener/floating_listener.dart';
 import 'package:floating/floating/utils/floating_log.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import '../data/floating_data.dart';
-import '../enum/floating_slide_type.dart';
+import '../assist/floating_data.dart';
+import '../assist/floating_slide_type.dart';
 
 /// @name：floating
 /// @package：
@@ -25,6 +25,7 @@ class FloatingView extends StatefulWidget {
   final FloatingLog _log;
   final double slideTopHeight;
   final double slideBottomHeight;
+  final double moveOpacity; // 悬浮组件透明度
 
   const FloatingView(this.child, this.floatingData, this.isPosCache,
       this._hideControl, this._listener, this._log,
@@ -32,7 +33,8 @@ class FloatingView extends StatefulWidget {
       this.width,
       this.height,
       this.slideTopHeight = 0,
-      this.slideBottomHeight = 0})
+      this.slideBottomHeight = 0,
+      this.moveOpacity = 0.3})
       : super(key: key);
 
   @override
@@ -93,7 +95,7 @@ class _FloatingViewState extends State<FloatingView>
       onPanUpdate: (DragUpdateDetails details) {
         _left += details.delta.dx;
         _top += details.delta.dy;
-        _opacity = 0.3;
+        _opacity = widget.moveOpacity;
         _changePosition();
         _notifyMove(_left, _top);
       },

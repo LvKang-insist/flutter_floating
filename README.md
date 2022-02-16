@@ -1,11 +1,25 @@
 # floating
 
-A new Flutter project.
+![f50c51e174e43911530beb1a8bdbbaef](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220216184500.jpeg)
 
-## Getting Started
+**Floating** 是一个灵活且强大的悬浮窗解决方案
 
-For help getting started with Flutter, view our online
-[documentation](https://flutter.dev/).
 
-For instructions integrating Flutter modules to your existing applications,
-see the [add-to-app documentation](https://flutter.dev/docs/development/add-to-app).
+
+### 特性
+
+- 全局的悬浮窗管理机制
+- 支持各项回调监听，如移动、按下等
+- 支持自定义是否保存悬浮窗的位置信息
+- 支持单页面及全局使用，可插入 N 个悬浮窗
+- 支持自定义禁止滑动区域，例如在 距离顶部 50 到底部的区域内滑动等
+- 完善的日志系统，可查看不同悬浮窗对应的 Log
+- 支持自定义位置方向及悬浮窗的各项指标
+- 支持越界回弹，多指触摸移动，自适应屏幕旋转以及小窗口等情况
+- .....
+
+### 依赖方式
+
+.............
+
+#### 效果图

@@ -1,12 +1,12 @@
 import 'package:floating/floating/listener/floating_listener.dart';
 import 'package:floating/floating/utils/floating_log.dart';
 import 'package:floating/floating/view/floating_view.dart';
-import 'package:floating/floating/control/hide_control.dart';
+import 'package:floating/floating/assist/hide_control.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'data/floating_data.dart';
-import 'enum/floating_slide_type.dart';
+import 'assist/floating_data.dart';
+import 'assist/floating_slide_type.dart';
 
 /// @name：floating
 /// @package：
@@ -55,6 +55,7 @@ class Floating {
     double? left,
     double? right,
     double? bottom,
+    double moveOpacity = 0.3,
     bool isPosCache = false,
     bool isShowLog = true,
     this.slideTopHeight = 0,
@@ -66,6 +67,7 @@ class Floating {
     _hideController = HideController();
     _floatingView = FloatingView(
         child, _floatingData, isPosCache, _hideController, _listener, _log,
+        moveOpacity: moveOpacity,
         width: width,
         height: height,
         slideTopHeight: slideTopHeight,
