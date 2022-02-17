@@ -1,6 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'floating/assist/floating_slide_type.dart';
+import 'floating/floating.dart';
+import 'floating_increment.dart';
+import 'main.dart';
+
 /// @name：page
 /// @package：
 /// @author：345 QQ:1831712732
@@ -15,6 +20,23 @@ class CustomPage extends StatefulWidget {
 }
 
 class _CustomPageState extends State<CustomPage> {
+  late Floating floating;
+
+  @override
+  void initState() {
+    super.initState();
+
+    floating = Floating(MyApp.navigatorKey, const FloatingIncrement(),
+        width: 50,
+        height: 50,
+        slideType: FloatingSlideType.onLeftAndTop,
+        left: 0,
+        top: 150,
+        isShowLog: false,
+        slideBottomHeight: 100);
+    floating.open();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,5 +45,11 @@ class _CustomPageState extends State<CustomPage> {
       ),
       body: Container(),
     );
+  }
+
+  @override
+  void dispose() {
+    floating.close();
+    super.dispose();
   }
 }

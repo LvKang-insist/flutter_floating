@@ -234,8 +234,7 @@ class _FloatingViewState extends State<FloatingView>
     var height = MediaQuery.of(context).size.height;
     if (width != _parentWidth || height != _parentHeight) {
       setState(() {
-        if (_floatingData.slideType == FloatingSlideType.onLeftAndTop ||
-            _floatingData.slideType == FloatingSlideType.onLeftAndBottom) {
+        if (_left < _parentWidth / 2) {
           _left = 0;
         } else {
           _left = width - _width;
