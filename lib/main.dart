@@ -47,16 +47,15 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     //因为获取状态栏高度，所以延时一帧
 
-    floatingOne = Floating(MyApp.navigatorKey, const FloatingIncrement(),
-        width: 50,
-        height: 50,
-        slideType: FloatingSlideType.onLeftAndTop,
-        left: 0,
-        top: 150,
-        isShowLog: false,
-        slideBottomHeight: 100);
-
-    floatingManager.closeAllFloating();
+    floatingOne = floatingManager.createFloating(
+        "1",
+        Floating(MyApp.navigatorKey, const FloatingIncrement(),
+            width: 50,
+            height: 50,
+            slideType: FloatingSlideType.onLeftAndTop,
+            left: 0,
+            top: 150,
+            slideBottomHeight: 100));
 
     var oneListener = FloatingListener()
       ..openListener = () {
@@ -77,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ..moveEndListener = (x, y) {
         print('移动结束 $x  $y  1');
       };
-    floatingOne.addFloatingListener(oneListener);
+    // floatingOne.addFloatingListener(oneListener);
     floatingTwo = floatingManager.createFloating(
         "2",
         Floating(MyApp.navigatorKey, const FloatingIncrement(),
@@ -112,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(height: 30),
               ButtonWidget(
                 "显示/关闭左上角悬浮窗",
-                    () {
+                () {
                   var floating = floatingManager.getFloating("1");
                   floating.isShowing ? floating.close() : floating.open();
                 },
@@ -131,42 +130,35 @@ class _MyHomePageState extends State<MyHomePage> {
               ButtonWidget("添加没有移动动画的悬浮窗", () {
                 floatingManager
                     .createFloating(
-                    DateTime
-                        .now()
-                        .millisecondsSinceEpoch,
-                    Floating(MyApp.navigatorKey, const FloatingIncrement(),
-                        width: 50,
-                        height: 50,
-                        slideType: FloatingSlideType.onLeftAndTop,
-                        left: 0,
-                        isShowLog: false,
-                        isPosCache: true,
-                        moveOpacity: 1,
-                        top: floatingManager.floatingSize() * 80))
+                        DateTime.now().millisecondsSinceEpoch,
+                        Floating(MyApp.navigatorKey, const FloatingIncrement(),
+                            width: 50,
+                            height: 50,
+                            slideType: FloatingSlideType.onLeftAndTop,
+                            left: 0,
+                            isShowLog: false,
+                            isPosCache: true,
+                            moveOpacity: 1,
+                            top: floatingManager.floatingSize() * 80))
                     .open();
               }),
               ButtonWidget("添加有状态栏的悬浮窗", () {
                 var floating = floatingManager
                     .createFloating(
-                    DateTime
-                        .now()
-                        .millisecondsSinceEpoch,
-                    Floating(MyApp.navigatorKey, const FloatingIncrement(),
-                        width: 50,
-                        height: 50,
-                        slideType: FloatingSlideType.onRightAndBottom,
-                        right: 0,
-                        bottom: floatingManager.floatingSize() * 80,
-                        //禁止滑动到状态栏
-                        slideTopHeight: MediaQuery
-                            .of(context)
-                            .padding
-                            .top,
-                        slideBottomHeight: 100))
+                        DateTime.now().millisecondsSinceEpoch,
+                        Floating(MyApp.navigatorKey, const FloatingIncrement(),
+                            width: 50,
+                            height: 50,
+                            slideType: FloatingSlideType.onRightAndBottom,
+                            right: 0,
+                            bottom: floatingManager.floatingSize() * 80,
+                            //禁止滑动到状态栏
+                            slideTopHeight: MediaQuery.of(context).padding.top,
+                            slideBottomHeight: 100))
                     .open();
               }),
               ButtonWidget("左上角悬浮窗否显示: ${floatingOne.isShowing ? "显示" : "隐藏"}",
-                      () => setState(() {})),
+                  () => setState(() {})),
               ButtonWidget("跳转页面", () => _startCustomPage()),
             ],
           ),

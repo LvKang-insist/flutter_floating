@@ -26,17 +26,37 @@
 
 |                             全局                             |                             小屏                             |                           缩放屏幕                           |
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| ![全局悬浮窗](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217145943.gif) | ![dc4c2ee331991f63bbd599a6dd2adc7d](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217150402.gif) | ![93d3d636180fc8b3f7fb7571ed4a6cba](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217152356.gif) |
+| ![69ec62dbd7cbf2ba1b35e8451969c2ef](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171737802.gif) | ![dc4c2ee331991f63bbd599a6dd2adc7d](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171739336.gif) | ![93d3d636180fc8b3f7fb7571ed4a6cba](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171739883.gif) |
 |                           旋转屏幕                           |                           多指滑动                           |                                                              |
-| ![e9b163becd3371257abc9f000ab68da3](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217152724.gif) | ![051e018f2dc2f218b2dc992f74fa891c](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217153006.gif) |                                                              |
+| ![e9b163becd3371257abc9f000ab68da3](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171740609.gif) | ![051e018f2dc2f218b2dc992f74fa891c](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171740850.gif) |                                                              |
 
 ### 可自由控制的日志查看
 
-创建悬浮窗的时候通过 `isShowLog` 属性控制
+创建悬浮窗的时候通过 `isShowLog` 属性控制，不同的悬浮窗 Log 会通过不同 key 显示出来
 
-|                         悬浮窗1 Log                          |                   悬浮窗1645083534292 Log                    |                         点击事件回调                         |
-| :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| <img src="https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217153746.png" alt="image-20220217153746539" style="zoom:50%;" /><img src="https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217153817.png" style="zoom:50%;" /> | ![image-20220217153947899](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217153947.png)![image-20220217153958282](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217153958.png) | ![image-20220217154137449](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217154137.png) |
+```dart
+I/flutter (24648): Floating_Log 1 ： 按下 X:0.0 Y:150.0
+I/flutter (24648): Floating_Log 1 ： 抬起 X:0.0 Y:150.0
+I/flutter (24648): Floating_Log 1 ： 移动 X:0.36363636363636687 Y:150.0
+I/flutter (24648): Floating_Log 1 ： 移动 X:0.36363636363636687 Y:149.63636363636363
+I/flutter (24648): Floating_Log 1 ： 移动 X:0.7272727272727337 Y:149.63636363636363
+I/flutter (24648): Floating_Log 1 ： 移动 X:1.0909090909091006 Y:149.27272727272725
+I/flutter (24648): Floating_Log 1 ： 移动 X:1.4545454545454675 Y:149.27272727272725
+I/flutter (24648): Floating_Log 1 ： 移动 X:1.4545454545454675 Y:148.90909090909088
+I/flutter (24648): Floating_Log 1 ： 移动 X:0.0 Y:145.9999999999999
+I/flutter (24648): Floating_Log 1 ： 移动结束 X:0.0 Y:145.9999999999999
+```
+
+```dart
+I/flutter (24648): Floating_Log 1645091422285 ： 按下 X:342.72727272727275 Y:480.9090909090909
+I/flutter (24648): Floating_Log 1645091422285 ： 抬起 X:342.72727272727275 Y:480.9090909090909
+I/flutter (24648): Floating_Log 1645091422285 ： 移动 X:342.72727272727275 Y:480.5454545454545
+I/flutter (24648): Floating_Log 1645091422285 ： 移动 X:342.72727272727275 Y:480.18181818181813
+I/flutter (24648): Floating_Log 1645091422285 ： 移动 X:342.72727272727275 Y:479.81818181818176
+I/flutter (24648): Floating_Log 1645091422285 ： 移动 X:342.72727272727275 Y:479.4545454545454
+I/flutter (24648): Floating_Log 1645091422285 ： 移动 X:342.72727272727275 Y:479.090909090909
+I/flutter (24648): Floating_Log 1645091422285 ： 移动 X:342.72727272727275 Y:478.72727272727263
+```
 
 
 
