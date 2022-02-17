@@ -28,7 +28,7 @@
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 | ![全局悬浮窗](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217145943.gif) | ![dc4c2ee331991f63bbd599a6dd2adc7d](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217150402.gif) | ![93d3d636180fc8b3f7fb7571ed4a6cba](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217152356.gif) |
 |                           旋转屏幕                           |                           多指滑动                           |                                                              |
-| ![e9b163becd3371257abc9f000ab68da3](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217152724.gif) | ![051e018f2dc2f218b2dc992f74fa891c](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217153006.gif) |                                                              |
+| ![e9b163becd3371257abc9f000ab68da3](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217152724.gif) | ![051e018f2dc2f218b2dc992f74fa891c](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220217153006.gif) |     ![效果-展示1](https://github.com/Petterpx/FloatingX/blob/master/image/fx-api-simple.gif)                                                         |
 
 ### 可自由控制的日志查看
 
