@@ -26,9 +26,9 @@
 
 |                             全局                             |                             小屏                             |                           缩放屏幕                           |
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| ![69ec62dbd7cbf2ba1b35e8451969c2ef](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171737802.gif) | <img src="https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171857879.gif" alt="G-空白格-2022-02-02-18.22" style="zoom:80%;" /> | ![93d3d636180fc8b3f7fb7571ed4a6cba](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171739883.gif) |
+| ![全屏悬浮窗](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171737802.gif) | ![小屏悬浮窗](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202172155850.gif) | ![缩放屏幕](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202172155135.gif) |
 |                           旋转屏幕                           |                           多指滑动                           |                                                              |
-| ![e9b163becd3371257abc9f000ab68da3](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171740609.gif) | ![051e018f2dc2f218b2dc992f74fa891c](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171740850.gif) |                                                              |
+| ![旋转屏幕](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171740609.gif) | ![多指滑动](https://cdn.jsdelivr.net/gh/LvKang-insist/PicGo/202202171740850.gif) |                                                              |
 
 ### 可自由控制的日志查看
 
