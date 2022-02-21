@@ -1,12 +1,11 @@
-import 'package:floating/floating/floating.dart';
-import 'package:floating/floating/assist/hide_control.dart';
-import 'package:floating/floating/listener/floating_listener.dart';
-import 'package:floating/floating/utils/floating_log.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../assist/floating_data.dart';
 import '../assist/floating_slide_type.dart';
+import '../assist/hide_control.dart';
+import '../listener/floating_listener.dart';
+import '../utils/floating_log.dart';
 
 /// @name：floating
 /// @package：

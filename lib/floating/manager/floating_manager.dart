@@ -1,4 +1,5 @@
-import 'package:floating/floating/floating.dart';
+
+import '../floating.dart';
 
 /// @name：floating_manager
 /// @package：

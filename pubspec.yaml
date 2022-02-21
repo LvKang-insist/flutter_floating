@@ -1,6 +1,6 @@
-name: floating
+name: flutter_floating
 description: The Flutter perposition-free suspension window supports global and single page suspension, edge adsorption, rebound, position saving, sliding up and down area control, and position repair after screen rotation window。
-version: 0.0.2
+version: 0.0.1
 homepage: https://github.com/LvKang-insist/Floating
 
 environment:

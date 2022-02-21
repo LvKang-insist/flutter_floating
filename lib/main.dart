@@ -1,12 +1,12 @@
-import 'package:floating/floating/floating.dart';
-import 'package:floating/floating/assist/floating_slide_type.dart';
-import 'package:floating/floating/listener/floating_listener.dart';
-import 'package:floating/floating/manager/floating_manager.dart';
-import 'package:floating/floating_increment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'button_widget.dart';
+import 'floating/assist/floating_slide_type.dart';
+import 'floating/floating.dart';
+import 'floating/listener/floating_listener.dart';
+import 'floating/manager/floating_manager.dart';
+import 'floating_increment.dart';
 import 'page.dart';
 
 void main() => runApp(const MyApp());
