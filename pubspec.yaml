@@ -1,7 +1,7 @@
 name: floating
-description: A new Flutter project.
-
-version: 1.0.0+1
+description: The Flutter perposition-free suspension window supports global and single page suspension, edge adsorption, rebound, position saving, sliding up and down area control, and position repair after screen rotation window。
+version: 0.0.2
+homepage: https://github.com/LvKang-insist/Floating
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -16,6 +16,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^1.0.0
+  test: ^1.17.10
 
 flutter:
 
@@ -23,5 +24,5 @@ flutter:
 
   module:
     androidX: true
-    androidPackage: com.lvkang.floating.floating
-    iosBundleIdentifier: com.lvkang.floating.floating
+    androidPackage: com.lvkang.floating
+    iosBundleIdentifier: com.lvkang.floating
