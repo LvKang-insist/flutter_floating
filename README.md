@@ -20,7 +20,7 @@
 
 ### 依赖方式
 ```
-flutter_floating 0.0.1
+flutter_floating: ^0.0.1
 ```
 #### 效果图
 
