@@ -17,6 +17,9 @@ class FloatingListener {
   ///显示悬浮窗
   Function? showFloatingListener;
 
+  /// 点击事件
+  Function()? tapListener;
+
   ///手指按下
   Function(double x, double y)? downListener;
 
