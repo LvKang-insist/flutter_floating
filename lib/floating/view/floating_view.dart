@@ -87,9 +87,9 @@ class _FloatingViewState extends State<FloatingView>
   _content() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => _notifyTap(),
+
       onTapDown: (details) => _notifyDown(_left, _top),
-      onTapUp: (details) => _notifyUp(_left, _top),
+      onTapCancel: () => _notifyUp(_left, _top),
       //滑动
       onPanUpdate: (DragUpdateDetails details) {
         _left += details.delta.dx;
@@ -291,13 +291,6 @@ class _FloatingViewState extends State<FloatingView>
     widget._log.log("移动结束 X:$x Y:$y");
     for (var element in widget._listener) {
       element.moveEndListener?.call(x, y);
-    }
-  }
-
-  _notifyTap() {
-    widget._log.log("点击");
-    for (var element in widget._listener) {
-      element.tapListener?.call();
     }
   }
 
