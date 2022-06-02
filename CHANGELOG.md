@@ -1,3 +1,7 @@
 ### v0.0.1
+一个灵活和强大的悬浮窗口解决方案
 
-first release A flexible and powerful suspension window solution
+### v0.1.0
+修复点击事件的bug
+优化开发体验，自适应子组件的大小，无需手动传入大小
+其他bug
