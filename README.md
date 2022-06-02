@@ -95,11 +95,7 @@ class MyApp extends StatelessWidget {
     floatingOne = floatingManager.createFloating(
           "1",///key
           Floating(MyApp._navigatorKey, const FloatingIncrement(),
-              width: 50,
-              height: 50,
               slideType: FloatingSlideType.onLeftAndTop,
-              left: 0,
-              top: 150,
               isShowLog: false,
               slideBottomHeight: 100));
   ```
@@ -144,11 +140,7 @@ class _CustomPageState extends State<CustomPage> {
     super.initState();
 
     floating = Floating(MyApp.navigatorKey, const FloatingIncrement(),
-        width: 50,
-        height: 50,
         slideType: FloatingSlideType.onLeftAndTop,
-        left: 0,
-        top: 150,
         isShowLog: false,
         slideBottomHeight: 100);
     floating.open();
