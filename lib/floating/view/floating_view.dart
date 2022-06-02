@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -17,8 +19,6 @@ class FloatingView extends StatefulWidget {
   final Widget child;
   final FloatingData floatingData;
   final bool isPosCache;
-  final double? width;
-  final double? height;
   final HideController _hideControl;
   final List<FloatingListener> _listener;
   final FloatingLog _log;
@@ -29,8 +29,6 @@ class FloatingView extends StatefulWidget {
   const FloatingView(this.child, this.floatingData, this.isPosCache,
       this._hideControl, this._listener, this._log,
       {Key? key,
-      this.width,
-      this.height,
       this.slideTopHeight = 0,
       this.slideBottomHeight = 0,
       this.moveOpacity = 0.3})
@@ -42,6 +40,9 @@ class FloatingView extends StatefulWidget {
 
 class _FloatingViewState extends State<FloatingView>
     with TickerProviderStateMixin {
+  final _floatingGlobalKey = GlobalKey();
+  RenderBox? renderBox;
+
   double _top = 0;
   double _left = 0;
 
@@ -51,9 +52,9 @@ class _FloatingViewState extends State<FloatingView>
 
   final double _defaultHeight = 100; //默认高度
 
-  late double _width;
+  double _width = 0;
 
-  late double _height;
+  double _height = 0;
 
   double _parentWidth = 0; //记录屏幕或者父组件宽度
   double _parentHeight = 0; //记录屏幕或者父组件宽度
@@ -73,8 +74,6 @@ class _FloatingViewState extends State<FloatingView>
   @override
   void initState() {
     super.initState();
-    _width = widget.width ?? _defaultWidth;
-    _height = widget.height ?? _defaultHeight;
     _floatingData = widget.floatingData;
     widget._hideControl
         .setHideControl((isHide) => setState(() => this.isHide = isHide));
@@ -82,6 +81,34 @@ class _FloatingViewState extends State<FloatingView>
     _controller = AnimationController(
         duration: const Duration(milliseconds: 0), vsync: this);
     _animation = Tween(begin: 0.0, end: 0.0).animate(_controller);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
+      !_isInitPosition ? _initPosition() : null;
+    });
+    return Stack(
+      children: [
+        Positioned(
+          child: AnimatedOpacity(
+              opacity: _opacity,
+              duration: const Duration(milliseconds: 300),
+              child: Offstage(
+                offstage: isHide,
+                child: OrientationBuilder(builder: (context, orientation) {
+                  checkScreenChange();
+                  return Opacity(
+                    child: _contentWidget,
+                    opacity: _isInitPosition ? 1 : 0,
+                  );
+                }),
+              )),
+          left: _left,
+          top: _top,
+        )
+      ],
+    );
   }
 
   _content() {
@@ -108,16 +135,23 @@ class _FloatingViewState extends State<FloatingView>
       onPanCancel: () {
         _changePosition();
       },
-      child: SizedBox(
-        width: _width,
-        height: _height,
-        child: UnconstrainedBox(child: widget.child),
+      child: Container(
+        key: _floatingGlobalKey,
+        child: widget.child,
       ),
     );
   }
 
+  _resetWidthHeight() {
+    renderBox ??=
+        _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
+    _width = renderBox?.size.width ?? _defaultWidth;
+    _height = renderBox?.size.height ?? _defaultHeight;
+  }
+
   ///边界判断
   _changePosition() {
+    _resetWidthHeight();
     //不能超过左边界
     if (_left < 0) _left = 0;
     //不能超过右边界
@@ -125,7 +159,6 @@ class _FloatingViewState extends State<FloatingView>
     if (_left >= w - _width) {
       _left = w - _width;
     }
-
     if (_top < widget.slideTopHeight) _top = widget.slideTopHeight;
     var t = MediaQuery.of(context).size.height;
     if (_top >= t - _height - widget.slideBottomHeight) {
@@ -204,31 +237,9 @@ class _FloatingViewState extends State<FloatingView>
     _isInitPosition = true;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    !_isInitPosition ? _initPosition() : null;
-    return Stack(
-      children: [
-        Positioned(
-          child: AnimatedOpacity(
-              opacity: _opacity,
-              duration: const Duration(milliseconds: 300),
-              child: Offstage(
-                offstage: isHide,
-                child: OrientationBuilder(builder: (context, orientation) {
-                  checkScreenChange();
-                  return _contentWidget;
-                }),
-              )),
-          left: _left,
-          top: _top,
-        )
-      ],
-    );
-  }
-
   ///判断屏幕是否发生改变
   checkScreenChange() {
+    _resetWidthHeight();
     var width = MediaQuery.of(context).size.width;
     var height = MediaQuery.of(context).size.height;
     if (width != _parentWidth || height != _parentHeight) {
@@ -250,6 +261,7 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   setSlide() {
+    _resetWidthHeight();
     switch (_floatingData.slideType) {
       case FloatingSlideType.onLeftAndTop:
         _top = _floatingData.top ?? 0;

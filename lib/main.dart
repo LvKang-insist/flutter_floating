@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_floating/floating_icon.dart';
 
 import 'button_widget.dart';
 import 'floating/assist/floating_slide_type.dart';
@@ -49,9 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     floatingOne = floatingManager.createFloating(
         "1",
-        Floating(MyApp.navigatorKey, const FloatingIncrement(),
-            width: 50,
-            height: 50,
+        Floating(MyApp.navigatorKey, const FloatingIcon(),
             slideType: FloatingSlideType.onLeftAndTop,
             left: 0,
             top: 150,
@@ -80,8 +79,6 @@ class _MyHomePageState extends State<MyHomePage> {
     floatingTwo = floatingManager.createFloating(
         "2",
         Floating(MyApp.navigatorKey, const FloatingIncrement(),
-            width: 50,
-            height: 50,
             slideType: FloatingSlideType.onRightAndTop,
             right: 0,
             isShowLog: false,
@@ -132,8 +129,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     .createFloating(
                         DateTime.now().millisecondsSinceEpoch,
                         Floating(MyApp.navigatorKey, const FloatingIncrement(),
-                            width: 50,
-                            height: 50,
                             slideType: FloatingSlideType.onLeftAndTop,
                             left: 0,
                             isShowLog: false,
@@ -142,23 +137,19 @@ class _MyHomePageState extends State<MyHomePage> {
                             top: floatingManager.floatingSize() * 80))
                     .open();
               }),
-              ButtonWidget("添加有状态栏的悬浮窗", () {
+              ButtonWidget("添加禁止滑动到状态栏和底部的悬浮窗", () {
                 var floating = floatingManager
                     .createFloating(
                         DateTime.now().millisecondsSinceEpoch,
                         Floating(MyApp.navigatorKey, const FloatingIncrement(),
-                            width: 50,
-                            height: 50,
                             slideType: FloatingSlideType.onRightAndBottom,
                             right: 0,
                             bottom: floatingManager.floatingSize() * 80,
                             //禁止滑动到状态栏
                             slideTopHeight: MediaQuery.of(context).padding.top,
-                            slideBottomHeight: 100))
+                            slideBottomHeight: 60))
                     .open();
               }),
-              ButtonWidget("左上角悬浮窗否显示: ${floatingOne.isShowing ? "显示" : "隐藏"}",
-                  () => setState(() {})),
               ButtonWidget("跳转页面", () => _startCustomPage()),
             ],
           ),

@@ -25,10 +25,7 @@ class _CustomPageState extends State<CustomPage> {
   @override
   void initState() {
     super.initState();
-
     floating = Floating(MyApp.navigatorKey, const FloatingIncrement(),
-        width: 50,
-        height: 50,
         slideType: FloatingSlideType.onLeftAndTop,
         left: 0,
         top: 150,

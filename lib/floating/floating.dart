@@ -38,8 +38,6 @@ class Floating {
   ///[child]需要悬浮的 widget
   ///[slideType]，可参考[FloatingSlideType]
   ///
-  /// [width],[height] 悬浮窗的宽高，若不传，默认为 100x100
-  ///
   ///[top],[left],[left],[bottom] 对应 [slideType]，
   ///例如设置[slideType]为[FloatingSlideType.onRightAndBottom]，则需要传入[bottom]和[right]
   ///
@@ -48,8 +46,6 @@ class Floating {
   Floating(
     this._navigatorKey,
     Widget child, {
-    double? width,
-    double? height,
     FloatingSlideType slideType = FloatingSlideType.onRightAndBottom,
     double? top,
     double? left,
@@ -68,8 +64,6 @@ class Floating {
     _floatingView = FloatingView(
         child, _floatingData, isPosCache, _hideController, _listener, _log,
         moveOpacity: moveOpacity,
-        width: width,
-        height: height,
         slideTopHeight: slideTopHeight,
         slideBottomHeight: slideBottomHeight);
   }
@@ -98,7 +92,7 @@ class Floating {
   }
 
   ///隐藏悬浮窗，保留其状态
-  ///只有在悬浮窗是隐藏的状态下才可以使用，否则调用无效
+  ///只有在悬浮窗显示的状态下才可以使用，否则调用无效
   hideFloating() {
     if (!_isShowing) return;
     _hideController.hideControl?.call(true);
