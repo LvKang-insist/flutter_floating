@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 
 import '../floating.dart';
 
@@ -17,6 +18,15 @@ class FloatingManager {
   factory FloatingManager() => _manager;
 
   final Map<Object, Floating> _floatingCache = {};
+
+  static TransitionBuilder init({TransitionBuilder? builder}) {
+    return (BuildContext context, Widget? child) {
+      if (builder != null) {
+        return builder(context, child);
+      }
+      return Container(child: child);
+    };
+  }
 
   ///创建一个可全局管理的 [Floating]
   Floating createFloating(Object key, Floating floating) {

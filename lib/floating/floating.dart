@@ -14,7 +14,6 @@ import 'listener/floating_listener.dart';
 /// @des：
 
 class Floating {
-  final GlobalKey<NavigatorState>? _navigatorKey;
   late OverlayEntry _overlayEntry;
 
   late FloatingView _floatingView;
@@ -46,7 +45,6 @@ class Floating {
   ///[slideTopHeight] 滑动边界控制，可滑动到顶部的距离
   ///[slideBottomHeight] 滑动边界控制，可滑动到底部的距离
   Floating(
-    this._navigatorKey,
     Widget child, {
     FloatingSlideType slideType = FloatingSlideType.onRightAndBottom,
     double? top,
@@ -74,13 +72,13 @@ class Floating {
   ///打开悬浮窗
   ///此方法配合 [close]方法进行使用，调用[close]之后在调用此方法会丢失 Floating 状态
   ///否则请使用 [hideFloating] 进行隐藏，使用 [showFloating]进行显示，而不是使用 [close]
-  open() {
+  open(BuildContext context) {
     if (_isShowing) return;
     SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
       _overlayEntry = OverlayEntry(builder: (context) {
         return _floatingView;
       });
-      _navigatorKey!.currentState?.overlay?.insert(_overlayEntry);
+      Overlay.of(context)?.insert(_overlayEntry);
       _isShowing = true;
       _notifyOpen();
     });

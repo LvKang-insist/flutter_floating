@@ -82,13 +82,11 @@ class _FloatingViewState extends State<FloatingView>
     _controller = AnimationController(
         duration: const Duration(milliseconds: 0), vsync: this);
     _animation = Tween(begin: 0.0, end: 0.0).animate(_controller);
+    _initPosition();
   }
 
   @override
   Widget build(BuildContext context) {
-    SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
-      !_isInitPosition ? _initPosition() : null;
-    });
     return Stack(
       children: [
         Positioned(
@@ -115,7 +113,6 @@ class _FloatingViewState extends State<FloatingView>
   _content() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-
       onTapDown: (details) => _notifyDown(_left, _top),
       onTapCancel: () => _notifyUp(_left, _top),
       //滑动
@@ -153,26 +150,28 @@ class _FloatingViewState extends State<FloatingView>
   ///边界判断
   _changePosition() {
     _resetWidthHeight();
+    _setParentHeightAndWidget();
     //不能超过左边界
     if (_left < 0) _left = 0;
     //不能超过右边界
-    var w = MediaQuery.of(context).size.width;
+    var w = _parentWidth;
     if (_left >= w - _width) {
       _left = w - _width;
     }
     if (_top < widget.slideTopHeight) _top = widget.slideTopHeight;
-    var t = MediaQuery.of(context).size.height;
+    var t = _parentHeight;
     if (_top >= t - _height - widget.slideBottomHeight) {
       _top = t - _height - widget.slideBottomHeight;
     }
     setState(() {
-      _setCacheData(_left, _top);
+      _saveCacheData(_left, _top);
     });
   }
 
   ///中线回弹动画
   _animateMovePosition() {
     if (!widget.isSnapToEdge) return;
+    _setParentHeightAndWidget();
     double centerX = _left + _width / 2.0;
     double toPositionX = 0;
     double needMoveLength = 0;
@@ -202,7 +201,7 @@ class _FloatingViewState extends State<FloatingView>
     _animation.addListener(() {
       _left = _animation.value.toDouble();
       setState(() {
-        _setCacheData(_left, _top);
+        _saveCacheData(_left, _top);
         _notifyMove(_left, _top);
       });
     });
@@ -228,34 +227,44 @@ class _FloatingViewState extends State<FloatingView>
       if (_floatingData.top == null && _floatingData.left == null) {
         setSlide();
       } else {
-        //获取缓存数据
-        _top = _floatingData.top ?? 0;
-        _left = _floatingData.left ?? 0;
+        _setCacheData();
       }
     } else {
       setSlide();
     }
-    _parentWidth = MediaQuery.of(context).size.width;
-    _parentHeight = MediaQuery.of(context).size.height;
     _isInitPosition = true;
   }
 
   ///判断屏幕是否发生改变
   checkScreenChange() {
     _resetWidthHeight();
+    _setParentHeightAndWidget();
     var width = MediaQuery.of(context).size.width;
     var height = MediaQuery.of(context).size.height;
     if (width != _parentWidth || height != _parentHeight) {
       setState(() {
-        if (_left < _parentWidth / 2) {
-          _left = 0;
+        if (!widget.isSnapToEdge) {
+          if (height > _parentHeight) {
+            _top = _top * (height / _parentHeight);
+          } else {
+            _top = _top / (_parentHeight / height);
+          }
+          if (_left > _parentWidth) {
+            _left = _left * (_width / _parentWidth);
+          } else {
+            _left = _left / (_parentWidth / width);
+          }
         } else {
-          _left = width - _width;
-        }
-        if (height > _parentHeight) {
-          _top = _top * (height / _parentHeight);
-        } else {
-          _top = _top / (_parentHeight / height);
+          if (_left < _parentWidth / 2) {
+            _left = 0;
+          } else {
+            _left = width - _width;
+          }
+          if (height > _parentHeight) {
+            _top = _top * (height / _parentHeight);
+          } else {
+            _top = _top / (_parentHeight / height);
+          }
         }
         _parentWidth = width;
         _parentHeight = height;
@@ -290,14 +299,27 @@ class _FloatingViewState extends State<FloatingView>
             _width;
         break;
     }
-    _setCacheData(_left, _top);
+    _saveCacheData(_left, _top);
   }
 
-  ///设置缓存位置
-  _setCacheData(double left, double top) {
+  ///保存缓存位置
+  _saveCacheData(double left, double top) {
     if (widget.isPosCache) {
       _floatingData.left = left;
       _floatingData.top = top;
+    }
+  }
+
+  ///设置缓存数据
+  _setCacheData() {
+    _top = _floatingData.top ?? 0;
+    _left = _floatingData.left ?? 0;
+  }
+
+  _setParentHeightAndWidget() {
+    if (_parentHeight == 0 || _parentWidth == 0) {
+      _parentWidth = MediaQuery.of(context).size.width;
+      _parentHeight = MediaQuery.of(context).size.height;
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_floating/floating/manager/floating_manager.dart';
 
 import 'floating/assist/floating_slide_type.dart';
 import 'floating/floating.dart';
@@ -25,13 +26,13 @@ class _CustomPageState extends State<CustomPage> {
   @override
   void initState() {
     super.initState();
-    floating = Floating(MyApp.navigatorKey, const FloatingIncrement(),
+    floating = Floating(const FloatingIncrement(),
         slideType: FloatingSlideType.onLeftAndTop,
         left: 0,
         top: 150,
         isShowLog: false,
         slideBottomHeight: 100);
-    floating.open();
+    floating.open(context);
   }
 
   @override
@@ -40,13 +41,22 @@ class _CustomPageState extends State<CustomPage> {
       appBar: AppBar(
         title: const Text("功能页面"),
       ),
-      body: Container(),
+      body: Container(
+        child: GestureDetector(
+          child: const Text(
+            "关闭悬浮窗",
+            style: TextStyle(fontSize: 30),
+          ),
+          onTap: () {
+            floatingManager.getFloating("1").close();
+          },
+        ),
+      ),
     );
   }
 
   @override
   void dispose() {
-    floating.close();
     super.dispose();
   }
 }
