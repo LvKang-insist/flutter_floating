@@ -21,7 +21,7 @@
 
 ### 依赖方式
 ```
-flutter_floating: ^0.1.1
+flutter_floating: ^0.1.2
 ```
 #### 效果图
 
@@ -63,28 +63,6 @@ I/flutter (24648): Floating_Log 1645091422285 ： 移动 X:342.72727272727275 Y:
 
 ### 使用方式
 
-#### 初始化
-
-```dart
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  static final GlobalKey<NavigatorState> _navigatorKey = GlobalKey();
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      navigatorKey: _navigatorKey,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Floating'),
-    );
-  }
-}
-```
-
 #### 可选参数
 
 ```dart
@@ -100,7 +78,6 @@ class MyApp extends StatelessWidget {
 ///[slideTopHeight] 滑动边界控制，可滑动到顶部的距离
 ///[slideBottomHeight] 滑动边界控制，可滑动到底部的距离
 Floating(
-  this._navigatorKey,
   Widget child, {
   FloatingSlideType slideType = FloatingSlideType.onRightAndBottom,
   double? top,
@@ -125,7 +102,7 @@ Floating(
   ```dart
     floatingOne = floatingManager.createFloating(
           "1",///key
-          Floating(MyApp._navigatorKey, const FloatingIncrement(),
+          Floating(const FloatingIncrement(),
               slideType: FloatingSlideType.onLeftAndTop,
               isShowLog: false,
               slideBottomHeight: 100));
@@ -169,8 +146,7 @@ class _CustomPageState extends State<CustomPage> {
   @override
   void initState() {
     super.initState();
-
-    floating = Floating(MyApp.navigatorKey, const FloatingIncrement(),
+    floating = Floating(const FloatingIncrement(),
         slideType: FloatingSlideType.onLeftAndTop,
         isShowLog: false,
         slideBottomHeight: 100);
@@ -225,3 +201,9 @@ floatingOne.addFloatingListener(oneListener);
 - [使用方式](https://github.com/LvKang-insist/Floating/blob/master/lib/main.dart)
 - [悬浮窗对应方法](https://github.com/LvKang-insist/Floating/blob/master/lib/floating/floating.dart)
 - [全局悬浮窗管理对应方法](https://github.com/LvKang-insist/Floating/blob/master/lib/floating/manager/floating_manager.dart)
+
+
+
+### 最后
+
+如果您在使用过程中有任何问题可直接发送邮件`lv345_y@163.com` 或者直接提 `Issues`
