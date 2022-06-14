@@ -1,6 +1,6 @@
 # floating
 
-![f50c51e174e43911530beb1a8bdbbaef](https://gitee.com/lvknaginist/pic-go-picure-bed/raw/master/images/20220216184500.jpeg)
+![68747470733a2f2f67697465652e636f6d2f6c766b6e6167696e6973742f7069632d676f2d7069637572652d6265642f7261772f6d61737465722f696d616765732f32303232303231363138343530302e6a706567](https://raw.githubusercontent.com/LvKang-insist/PicGo/main/202206141432981.jpg)
 
 **Floating** 是一个灵活且强大的悬浮窗解决方案
 
@@ -21,7 +21,7 @@
 
 ### 依赖方式
 ```
-flutter_floating: ^0.1.0
+flutter_floating: ^0.1.1
 ```
 #### 效果图
 
@@ -83,6 +83,37 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+```
+
+#### 可选参数
+
+```dart
+///[child]需要悬浮的 widget
+///[slideType]，可参考[FloatingSlideType]
+///
+///[top],[left],[left],[bottom] 对应 [slideType]，
+///例如设置[slideType]为[FloatingSlideType.onRightAndBottom]，则需要传入[bottom]和[right]
+///
+///[isPosCache]启用之后当调用之后 [Floating.close] 重新调用 [Floating.open] 后会保持之前的位置
+///[isSnapToEdge]是否自动吸附边缘，默认为 true ，请注意，移动默认是有透明动画的，如需要关闭透明度动画，
+///请修改 [moveOpacity]为 1
+///[slideTopHeight] 滑动边界控制，可滑动到顶部的距离
+///[slideBottomHeight] 滑动边界控制，可滑动到底部的距离
+Floating(
+  this._navigatorKey,
+  Widget child, {
+  FloatingSlideType slideType = FloatingSlideType.onRightAndBottom,
+  double? top,
+  double? left,
+  double? right,
+  double? bottom,
+  double moveOpacity = 0.3,
+  bool isPosCache = true,
+  bool isShowLog = true,
+  bool isSnapToEdge = true,
+  this.slideTopHeight = 0,
+  this.slideBottomHeight = 0,
+})
 ```
 
 #### 全局悬浮窗

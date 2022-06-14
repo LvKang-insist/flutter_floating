@@ -19,6 +19,7 @@ class FloatingView extends StatefulWidget {
   final Widget child;
   final FloatingData floatingData;
   final bool isPosCache;
+  final bool isSnapToEdge;
   final HideController _hideControl;
   final List<FloatingListener> _listener;
   final FloatingLog _log;
@@ -27,7 +28,7 @@ class FloatingView extends StatefulWidget {
   final double moveOpacity; // 悬浮组件透明度
 
   const FloatingView(this.child, this.floatingData, this.isPosCache,
-      this._hideControl, this._listener, this._log,
+      this.isSnapToEdge, this._hideControl, this._listener, this._log,
       {Key? key,
       this.slideTopHeight = 0,
       this.slideBottomHeight = 0,
@@ -165,13 +166,13 @@ class _FloatingViewState extends State<FloatingView>
       _top = t - _height - widget.slideBottomHeight;
     }
     setState(() {
-      _floatingData.left = _left;
-      _floatingData.top = _top;
+      _setCacheData(_left, _top);
     });
   }
 
   ///中线回弹动画
   _animateMovePosition() {
+    if (!widget.isSnapToEdge) return;
     double centerX = _left + _width / 2.0;
     double toPositionX = 0;
     double needMoveLength = 0;
@@ -201,24 +202,26 @@ class _FloatingViewState extends State<FloatingView>
     _animation.addListener(() {
       _left = _animation.value.toDouble();
       setState(() {
-        _floatingData.left = _left;
-        _floatingData.top = _top;
+        _setCacheData(_left, _top);
         _notifyMove(_left, _top);
       });
     });
 
-    _animation.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        Future.delayed(const Duration(milliseconds: 200), () {
-          setState(() => _opacity = 1.0);
-          _notifyMoveEnd(_left, _top);
-        });
-      }
-    });
+    if (_opacity != 1.0) {
+      _animation.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          Future.delayed(const Duration(milliseconds: 200), () {
+            setState(() => _opacity = 1.0);
+            _notifyMoveEnd(_left, _top);
+          });
+        }
+      });
+    }
     _controller.forward();
   }
 
   _initPosition() {
+    _resetWidthHeight();
     //使用缓存
     if (widget.isPosCache) {
       //如果之前没有缓存数据
@@ -261,7 +264,6 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   setSlide() {
-    _resetWidthHeight();
     switch (_floatingData.slideType) {
       case FloatingSlideType.onLeftAndTop:
         _top = _floatingData.top ?? 0;
@@ -288,8 +290,15 @@ class _FloatingViewState extends State<FloatingView>
             _width;
         break;
     }
-    _floatingData.left = _left;
-    _floatingData.top = _top;
+    _setCacheData(_left, _top);
+  }
+
+  ///设置缓存位置
+  _setCacheData(double left, double top) {
+    if (widget.isPosCache) {
+      _floatingData.left = left;
+      _floatingData.top = top;
+    }
   }
 
   _notifyMove(double x, double y) {
