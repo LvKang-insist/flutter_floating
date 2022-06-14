@@ -52,6 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
         "1",
         Floating(MyApp.navigatorKey, const FloatingIcon(),
             slideType: FloatingSlideType.onLeftAndTop,
+
             left: 0,
             top: 150,
             slideBottomHeight: 100));
