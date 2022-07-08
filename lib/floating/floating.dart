@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_floating/floating/utils/floating_log.dart';
 import 'package:flutter_floating/floating/view/floating_view.dart';
+
 import 'assist/floating_data.dart';
 import 'assist/floating_slide_type.dart';
 import 'assist/hide_control.dart';
@@ -62,11 +63,18 @@ class Floating {
         left: left, right: right, top: top, bottom: bottom);
     _log = FloatingLog(isShowLog);
     _hideController = HideController();
-    _floatingView = FloatingView(child, _floatingData, isPosCache, isSnapToEdge,
-        _hideController, _listener, _log,
-        moveOpacity: moveOpacity,
-        slideTopHeight: slideTopHeight,
-        slideBottomHeight: slideBottomHeight);
+    _floatingView = FloatingView(
+      child,
+      _floatingData,
+      isPosCache,
+      isSnapToEdge,
+      _hideController,
+      _listener,
+      _log,
+      moveOpacity: moveOpacity,
+      slideTopHeight: slideTopHeight,
+      slideBottomHeight: slideBottomHeight,
+    );
   }
 
   ///打开悬浮窗
@@ -74,7 +82,7 @@ class Floating {
   ///否则请使用 [hideFloating] 进行隐藏，使用 [showFloating]进行显示，而不是使用 [close]
   open(BuildContext context) {
     if (_isShowing) return;
-    SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
       _overlayEntry = OverlayEntry(builder: (context) {
         return _floatingView;
       });

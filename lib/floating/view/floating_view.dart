@@ -1,8 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+
 import '../assist/floating_data.dart';
 import '../assist/floating_slide_type.dart';
 import '../assist/hide_control.dart';
@@ -82,7 +81,11 @@ class _FloatingViewState extends State<FloatingView>
     _controller = AnimationController(
         duration: const Duration(milliseconds: 0), vsync: this);
     _animation = Tween(begin: 0.0, end: 0.0).animate(_controller);
-    _initPosition();
+    setState(() {
+      _setParentHeightAndWidget();
+      _resetWidthHeight();
+      _initPosition();
+    });
   }
 
   @override
@@ -149,8 +152,6 @@ class _FloatingViewState extends State<FloatingView>
 
   ///边界判断
   _changePosition() {
-    _resetWidthHeight();
-    _setParentHeightAndWidget();
     //不能超过左边界
     if (_left < 0) _left = 0;
     //不能超过右边界
@@ -171,7 +172,6 @@ class _FloatingViewState extends State<FloatingView>
   ///中线回弹动画
   _animateMovePosition() {
     if (!widget.isSnapToEdge) return;
-    _setParentHeightAndWidget();
     double centerX = _left + _width / 2.0;
     double toPositionX = 0;
     double needMoveLength = 0;
@@ -198,6 +198,7 @@ class _FloatingViewState extends State<FloatingView>
         duration: Duration(milliseconds: time), vsync: this);
     _animation =
         Tween(begin: _left, end: toPositionX * 1.0).animate(_controller);
+    //回弹动画
     _animation.addListener(() {
       _left = _animation.value.toDouble();
       setState(() {
@@ -207,6 +208,7 @@ class _FloatingViewState extends State<FloatingView>
     });
 
     if (_opacity != 1.0) {
+      //恢复透明度
       _animation.addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           Future.delayed(const Duration(milliseconds: 200), () {
@@ -220,11 +222,10 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   _initPosition() {
-    _resetWidthHeight();
     //使用缓存
     if (widget.isPosCache) {
       //如果之前没有缓存数据
-      if (_floatingData.top == null && _floatingData.left == null) {
+      if (_floatingData.top == null || _floatingData.left == null) {
         setSlide();
       } else {
         _setCacheData();
@@ -237,8 +238,8 @@ class _FloatingViewState extends State<FloatingView>
 
   ///判断屏幕是否发生改变
   checkScreenChange() {
-    _resetWidthHeight();
-    _setParentHeightAndWidget();
+    //如果屏幕宽高为0，直接退出
+    if(_parentWidth == 0 || _parentHeight == 0) return;
     var width = MediaQuery.of(context).size.width;
     var height = MediaQuery.of(context).size.height;
     if (width != _parentWidth || height != _parentHeight) {
@@ -280,23 +281,15 @@ class _FloatingViewState extends State<FloatingView>
         break;
       case FloatingSlideType.onLeftAndBottom:
         _left = _floatingData.left ?? 0;
-        _top = MediaQuery.of(context).size.height -
-            (_floatingData.bottom ?? 0) -
-            _height;
+        _top = _parentHeight - (_floatingData.bottom ?? 0) - _height;
         break;
       case FloatingSlideType.onRightAndTop:
         _top = _floatingData.top ?? 0;
-        _left = MediaQuery.of(context).size.width -
-            (_floatingData.right ?? 0) -
-            _width;
+        _left = _parentWidth - (_floatingData.right ?? 0) - _width;
         break;
       case FloatingSlideType.onRightAndBottom:
-        _top = MediaQuery.of(context).size.height -
-            (_floatingData.bottom ?? 0) -
-            _height;
-        _left = MediaQuery.of(context).size.width -
-            (_floatingData.right ?? 0) -
-            _width;
+        _left = _parentWidth - (_floatingData.right ?? 0) - _width;
+        _top = _parentHeight - (_floatingData.bottom ?? 0) - _height;
         break;
     }
     _saveCacheData(_left, _top);
@@ -354,9 +347,9 @@ class _FloatingViewState extends State<FloatingView>
   @override
   void setState(VoidCallback fn) {
     if (mounted) {
-      final schedulerPhase = SchedulerBinding.instance?.schedulerPhase;
+      final schedulerPhase = SchedulerBinding.instance.schedulerPhase;
       if (schedulerPhase == SchedulerPhase.persistentCallbacks) {
-        SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
+        SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
           super.setState(fn);
         });
       } else {

@@ -15,13 +15,11 @@ void main() => runApp(const MyApp());
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      navigatorKey: navigatorKey,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -47,7 +45,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     //因为获取状态栏高度，所以延时一帧
-
     floatingOne = floatingManager.createFloating(
         "1",
         Floating(const FloatingIcon(),
@@ -59,34 +56,13 @@ class _MyHomePageState extends State<MyHomePage> {
             left: 0,
             top: 150,
             slideBottomHeight: 100));
-
-    var oneListener = FloatingListener()
-      ..openListener = () {
-        print('显示1');
-      }
-      ..closeListener = () {
-        print('关闭1');
-      }
-      ..downListener = (x, y) {
-        print('按下1');
-      }
-      ..upListener = (x, y) {
-        print('抬起1');
-      }
-      ..moveListener = (x, y) {
-        print('移动 $x  $y  1');
-      }
-      ..moveEndListener = (x, y) {
-        print('移动结束 $x  $y  1');
-      };
-    // floatingOne.addFloatingListener(oneListener);
     floatingTwo = floatingManager.createFloating(
         "2",
         Floating(const FloatingIncrement(),
-            slideType: FloatingSlideType.onRightAndTop,
-            right: 0,
-            isShowLog: false,
-            top: 150));
+            slideType: FloatingSlideType.onRightAndBottom,
+            right: 30,
+            isShowLog: true,
+            bottom: 300));
   }
 
   void _startCustomPage() {
@@ -111,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               const SizedBox(height: 30),
               ButtonWidget(
-                "显示/关闭左上角悬浮窗",
+                "显示/关闭左上角没有回弹的悬浮窗",
                 () {
                   var floating = floatingManager.getFloating("1");
                   floating.isShowing
@@ -144,12 +120,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     .open(context);
               }),
               ButtonWidget("添加禁止滑动到状态栏和底部的悬浮窗", () {
-                var floating = floatingManager
+               floatingManager
                     .createFloating(
                         DateTime.now().millisecondsSinceEpoch,
                         Floating(const FloatingIncrement(),
                             slideType: FloatingSlideType.onRightAndBottom,
-                            right: 0,
+                            right: 100,
                             bottom: floatingManager.floatingSize() * 80,
                             //禁止滑动到状态栏
                             slideTopHeight: MediaQuery.of(context).padding.top,
