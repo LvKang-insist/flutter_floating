@@ -21,7 +21,8 @@
 
 ### 依赖方式
 ```
-flutter_floating: ^0.1.3
+flutter_floating: ^0.1.3 //flutter3.0及以上请使用 
+flutter_floating: ^0.1.4 //flutter3.0以下请使用
 ```
 #### 效果图
 

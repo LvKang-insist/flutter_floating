@@ -82,7 +82,7 @@ class Floating {
   ///否则请使用 [hideFloating] 进行隐藏，使用 [showFloating]进行显示，而不是使用 [close]
   open(BuildContext context) {
     if (_isShowing) return;
-    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+    SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
       _overlayEntry = OverlayEntry(builder: (context) {
         return _floatingView;
       });
