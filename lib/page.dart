@@ -1,9 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating/floating/manager/floating_manager.dart';
-import 'package:get/get.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
-import 'package:get/get_state_manager/src/simple/get_view.dart';
 
 import 'floating/assist/floating_slide_type.dart';
 import 'floating/floating.dart';
@@ -30,7 +27,7 @@ class _CustomPageState extends State<CustomPage> {
     super.initState();
   }
 
-  var s = Get.put(AwesomeController());
+  // var s = Get.put(AwesomeController());
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +38,7 @@ class _CustomPageState extends State<CustomPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            AwesomeView(),
+            // AwesomeView(),
             GestureDetector(
               child: const Text(
                 "关闭悬浮窗",
@@ -63,34 +60,34 @@ class _CustomPageState extends State<CustomPage> {
   }
 }
 
-class AwesomeController extends GetxController {
-  final String title = 'My Awesome View';
-}
-
-
-
-// 一定要记住传递你用来注册控制器的`Type`!
-class AwesomeView extends GetView<AwesomeController> {
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        floatingManager
-            .createFloating(
-                "1",
-                Floating(const FloatingIncrement(),
-                    slideType: FloatingSlideType.onLeftAndTop,
-                    left: 0,
-                    top: 150,
-                    isShowLog: false,
-                    slideBottomHeight: 100))
-            .open(context);
-      },
-      child: Container(
-        padding: EdgeInsets.all(20),
-        child: Text(controller.title), // 只需调用 "controller.something"。
-      ),
-    );
-  }
-}
+// class AwesomeController extends GetxController {
+//   final String title = 'My Awesome View';
+// }
+//
+//
+//
+// // 一定要记住传递你用来注册控制器的`Type`!
+// class AwesomeView extends GetView<AwesomeController> {
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: () {
+//         floatingManager
+//             .createFloating(
+//                 "1",
+//                 Floating(const FloatingIncrement(),
+//                     slideType: FloatingSlideType.onLeftAndTop,
+//                     left: 0,
+//                     top: 150,
+//                     isShowLog: false,
+//                     slideBottomHeight: 100))
+//             .open(context);
+//       },
+//       child: Container(
+//         padding: EdgeInsets.all(20),
+//         child: Text(controller.title), // 只需调用 "controller.something"。
+//       ),
+//     );
+//   }
+// }
