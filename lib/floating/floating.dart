@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_floating/floating/utils/floating_log.dart';
 import 'package:flutter_floating/floating/view/floating_view.dart';
+import 'package:flutter_floating/main.dart';
 
 import 'assist/floating_data.dart';
 import 'assist/floating_slide_type.dart';
@@ -82,14 +83,12 @@ class Floating {
   ///否则请使用 [hideFloating] 进行隐藏，使用 [showFloating]进行显示，而不是使用 [close]
   open(BuildContext context) {
     if (_isShowing) return;
-    SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
       _overlayEntry = OverlayEntry(builder: (context) {
         return _floatingView;
       });
       Overlay.of(context)?.insert(_overlayEntry);
       _isShowing = true;
       _notifyOpen();
-    });
   }
 
   ///关闭悬浮窗
