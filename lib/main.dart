@@ -4,6 +4,7 @@ import 'package:flutter_floating/floating_icon.dart';
 import 'button_widget.dart';
 import 'floating/assist/floating_slide_type.dart';
 import 'floating/floating.dart';
+import 'floating/listener/floating_listener.dart';
 import 'floating/manager/floating_manager.dart';
 import 'floating_increment.dart';
 import 'page.dart';
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      navigatorKey:globalKey ,
+      navigatorKey: globalKey,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -56,13 +57,37 @@ class _MyHomePageState extends State<MyHomePage> {
             left: 0,
             top: 150,
             slideBottomHeight: 100));
+
     floatingTwo = floatingManager.createFloating(
         "2",
-        Floating(const FloatingIncrement(),
-            slideType: FloatingSlideType.onRightAndBottom,
-            right: 30,
-            isShowLog: true,
-            bottom: 300));
+        Floating(
+          const FloatingIncrement(),
+          slideType: FloatingSlideType.onRightAndTop,
+          right: 30,
+          isShowLog: false,
+          isSnapToEdge: false,
+          top: 100,
+        ));
+    var oneListener = FloatingListener()
+      ..openListener = () {
+        print('显示1');
+      }
+      ..closeListener = () {
+        print('关闭1');
+      }
+      ..downListener = (x, y) {
+        print('按下1');
+      }
+      ..upListener = (x, y) {
+        print('抬起1');
+      }
+      ..moveListener = (x, y) {
+        print('移动 $x  $y  1');
+      }
+      ..moveEndListener = (x, y) {
+        print('移动结束 $x  $y  1');
+      };
+    floatingTwo.addFloatingListener(oneListener);
   }
 
   void _startCustomPage() {
@@ -120,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     .open(context);
               }),
               ButtonWidget("添加禁止滑动到状态栏和底部的悬浮窗", () {
-               floatingManager
+                floatingManager
                     .createFloating(
                         DateTime.now().millisecondsSinceEpoch,
                         Floating(const FloatingIncrement(),

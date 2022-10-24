@@ -65,9 +65,11 @@ class _FloatingViewState extends State<FloatingView>
 
   late Widget _contentWidget;
 
-  late AnimationController _controller; //动画控制器
+  late AnimationController _slideController; //动画控制器
+  late Animation<double> _slideAnimation; //动画
 
-  late Animation<double> _animation; //动画
+  late AnimationController _opacityController; //动画控制器
+  late Animation<double> _opacityAnimation; //动画
 
   bool isHide = false;
 
@@ -78,9 +80,14 @@ class _FloatingViewState extends State<FloatingView>
     widget._hideControl
         .setHideControl((isHide) => setState(() => this.isHide = isHide));
     _contentWidget = _content();
-    _controller = AnimationController(
+    _slideController = AnimationController(
         duration: const Duration(milliseconds: 0), vsync: this);
-    _animation = Tween(begin: 0.0, end: 0.0).animate(_controller);
+    _slideAnimation = Tween(begin: 0.0, end: 0.0).animate(_slideController);
+
+    _opacityController = AnimationController(
+        duration: const Duration(milliseconds: 0), vsync: this);
+    _opacityAnimation =
+        Tween(begin: _opacity, end: 1.0).animate(_opacityController);
     setState(() {
       _setParentHeightAndWidget();
       _resetWidthHeight();
@@ -171,7 +178,11 @@ class _FloatingViewState extends State<FloatingView>
 
   ///中线回弹动画
   _animateMovePosition() {
-    if (!widget.isSnapToEdge) return;
+    if (!widget.isSnapToEdge) {
+      _notifyMoveEnd(_left, _top);
+      _recoverOpacity();
+      return;
+    }
     double centerX = _left + _width / 2.0;
     double toPositionX = 0;
     double needMoveLength = 0;
@@ -192,33 +203,49 @@ class _FloatingViewState extends State<FloatingView>
     } else {
       toPositionX = _parentWidth - _width; //回到右边缘
     }
+    //执行动画
+    _animationSlide(_left, _top, toPositionX, time, () {
+      //结束后进行通知
+      _notifyMove(_left, _top);
+      //恢复透明度
+      _recoverOpacity();
+    });
+  }
 
-    _controller.dispose();
-    _controller = AnimationController(
+  _animationSlide(double _left, double _top, double toPositionX, int time,
+      Function completed) {
+    _slideController.dispose();
+    _slideController = AnimationController(
         duration: Duration(milliseconds: time), vsync: this);
-    _animation =
-        Tween(begin: _left, end: toPositionX * 1.0).animate(_controller);
+    _slideAnimation =
+        Tween(begin: _left, end: toPositionX * 1.0).animate(_slideController);
     //回弹动画
-    _animation.addListener(() {
-      _left = _animation.value.toDouble();
+    _slideAnimation.addListener(() {
+      _left = _slideAnimation.value.toDouble();
       setState(() {
         _saveCacheData(_left, _top);
         _notifyMove(_left, _top);
       });
     });
+    _slideController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        completed.call();
+      }
+    });
+    _slideController.forward();
+  }
 
+  ///恢复透明度
+  _recoverOpacity() {
+    print('----------------------> $_opacity');
     if (_opacity != 1.0) {
-      //恢复透明度
-      _animation.addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          Future.delayed(const Duration(milliseconds: 200), () {
-            setState(() => _opacity = 1.0);
-            _notifyMoveEnd(_left, _top);
-          });
-        }
+      _opacityAnimation.addListener(() {
+        var opacity = _slideAnimation.value.toDouble();
+        setState(() => _opacity = opacity);
+        print('---------------------->');
       });
+      _opacityController.forward();
     }
-    _controller.forward();
   }
 
   _initPosition() {
@@ -239,7 +266,7 @@ class _FloatingViewState extends State<FloatingView>
   ///判断屏幕是否发生改变
   checkScreenChange() {
     //如果屏幕宽高为0，直接退出
-    if(_parentWidth == 0 || _parentHeight == 0) return;
+    if (_parentWidth == 0 || _parentHeight == 0) return;
     var width = MediaQuery.of(context).size.width;
     var height = MediaQuery.of(context).size.height;
     if (width != _parentWidth || height != _parentHeight) {
@@ -361,6 +388,6 @@ class _FloatingViewState extends State<FloatingView>
   @override
   void dispose() {
     super.dispose();
-    _controller.dispose();
+    _slideController.dispose();
   }
 }
