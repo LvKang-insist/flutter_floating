@@ -19,10 +19,11 @@
 - 自适应悬浮窗大小
 - .....
 
-### 依赖方式
+### 打开方式
+
+项目迁移至 flutter3.0，3.0一下可能无法使用，请自行升级flutters SDK
 ```
-flutter_floating: ^0.1.3 //flutter3.0及以上请使用 
-flutter_floating: ^0.1.5 //flutter3.0以下请使用，推荐
+flutter_floating: ^1.0.1 
 ```
 #### 效果图
 
