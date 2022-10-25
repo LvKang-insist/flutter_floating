@@ -57,17 +57,6 @@ class _MyHomePageState extends State<MyHomePage> {
             left: 0,
             top: 150,
             slideBottomHeight: 100));
-
-    floatingTwo = floatingManager.createFloating(
-        "2",
-        Floating(
-          const FloatingIncrement(),
-          slideType: FloatingSlideType.onRightAndTop,
-          right: 30,
-          isShowLog: false,
-          isSnapToEdge: false,
-          top: 100,
-        ));
     var oneListener = FloatingListener()
       ..openListener = () {
         print('显示1');
@@ -87,7 +76,17 @@ class _MyHomePageState extends State<MyHomePage> {
       ..moveEndListener = (x, y) {
         print('移动结束 $x  $y  1');
       };
-    floatingTwo.addFloatingListener(oneListener);
+    floatingOne.addFloatingListener(oneListener);
+    floatingTwo = floatingManager.createFloating(
+        "2",
+        Floating(
+          const FloatingIncrement(),
+          slideType: FloatingSlideType.onRightAndTop,
+          right: 30,
+          isShowLog: false,
+          isSnapToEdge: true,
+          top: 100,
+        ));
   }
 
   void _startCustomPage() {

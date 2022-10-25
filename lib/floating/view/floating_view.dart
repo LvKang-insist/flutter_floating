@@ -12,7 +12,7 @@ import '../utils/floating_log.dart';
 /// @package：
 /// @author：345 QQ:1831712732
 /// @time：2022/02/09 22:33
-/// @des：
+/// @des：悬浮窗容器
 
 class FloatingView extends StatefulWidget {
   final Widget child;
@@ -68,8 +68,6 @@ class _FloatingViewState extends State<FloatingView>
   late AnimationController _slideController; //动画控制器
   late Animation<double> _slideAnimation; //动画
 
-  late AnimationController _opacityController; //动画控制器
-  late Animation<double> _opacityAnimation; //动画
 
   bool isHide = false;
 
@@ -84,10 +82,6 @@ class _FloatingViewState extends State<FloatingView>
         duration: const Duration(milliseconds: 0), vsync: this);
     _slideAnimation = Tween(begin: 0.0, end: 0.0).animate(_slideController);
 
-    _opacityController = AnimationController(
-        duration: const Duration(milliseconds: 0), vsync: this);
-    _opacityAnimation =
-        Tween(begin: _opacity, end: 1.0).animate(_opacityController);
     setState(() {
       _setParentHeightAndWidget();
       _resetWidthHeight();
@@ -100,9 +94,12 @@ class _FloatingViewState extends State<FloatingView>
     return Stack(
       children: [
         Positioned(
+          left: _left,
+          top: _top,
           child: AnimatedOpacity(
               opacity: _opacity,
-              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              duration: const Duration(milliseconds: 200),
               child: Offstage(
                 offstage: isHide,
                 child: OrientationBuilder(builder: (context, orientation) {
@@ -113,8 +110,6 @@ class _FloatingViewState extends State<FloatingView>
                   );
                 }),
               )),
-          left: _left,
-          top: _top,
         )
       ],
     );
@@ -179,8 +174,8 @@ class _FloatingViewState extends State<FloatingView>
   ///中线回弹动画
   _animateMovePosition() {
     if (!widget.isSnapToEdge) {
-      _notifyMoveEnd(_left, _top);
       _recoverOpacity();
+      _notifyMoveEnd(_left, _top);
       return;
     }
     double centerX = _left + _width / 2.0;
@@ -204,21 +199,21 @@ class _FloatingViewState extends State<FloatingView>
       toPositionX = _parentWidth - _width; //回到右边缘
     }
     //执行动画
-    _animationSlide(_left, _top, toPositionX, time, () {
-      //结束后进行通知
-      _notifyMove(_left, _top);
+    _animationSlide(_left, toPositionX, time, () {
       //恢复透明度
       _recoverOpacity();
+      //结束后进行通知
+      _notifyMoveEnd(_left, _top);
     });
   }
 
-  _animationSlide(double _left, double _top, double toPositionX, int time,
-      Function completed) {
+  _animationSlide(
+      double left, double toPositionX, int time, Function completed) {
     _slideController.dispose();
     _slideController = AnimationController(
         duration: Duration(milliseconds: time), vsync: this);
     _slideAnimation =
-        Tween(begin: _left, end: toPositionX * 1.0).animate(_slideController);
+        Tween(begin: left, end: toPositionX * 1.0).animate(_slideController);
     //回弹动画
     _slideAnimation.addListener(() {
       _left = _slideAnimation.value.toDouble();
@@ -237,14 +232,8 @@ class _FloatingViewState extends State<FloatingView>
 
   ///恢复透明度
   _recoverOpacity() {
-    print('----------------------> $_opacity');
     if (_opacity != 1.0) {
-      _opacityAnimation.addListener(() {
-        var opacity = _slideAnimation.value.toDouble();
-        setState(() => _opacity = opacity);
-        print('---------------------->');
-      });
-      _opacityController.forward();
+      setState(() => _opacity = 1.0);
     }
   }
 
