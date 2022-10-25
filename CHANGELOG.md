@@ -1,4 +1,7 @@
 
+### v1.0.1
+项目迁移至 flutter3.0，3.0一下可能无法使用，请自行升级flutters SDK
+
 ### v0.1.6
 修复 moveEndListener 无法回调，优化内部逻辑。flutter 3.0以下使用
 
