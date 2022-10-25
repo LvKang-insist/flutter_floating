@@ -363,9 +363,9 @@ class _FloatingViewState extends State<FloatingView>
   @override
   void setState(VoidCallback fn) {
     if (mounted) {
-      final schedulerPhase = SchedulerBinding.instance?.schedulerPhase;
+      final schedulerPhase = SchedulerBinding.instance.schedulerPhase;
       if (schedulerPhase == SchedulerPhase.persistentCallbacks) {
-        SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
+        SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
           super.setState(fn);
         });
       } else {
