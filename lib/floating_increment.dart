@@ -19,16 +19,18 @@ class _FloatingIncrementState extends State<FloatingIncrement> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => setState(() => _counter++),
-      child: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-            color: Colors.blue, borderRadius: BorderRadius.circular(50)),
-        alignment: Alignment.center,
-        child: Text("$_counter",
-            style: const TextStyle(fontSize: 20, color: Colors.white)),
+    return Material(
+      child: GestureDetector(
+        onTap: () => setState(() => _counter++),
+        child: Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+              color: Colors.blue, borderRadius: BorderRadius.circular(50)),
+          alignment: Alignment.center,
+          child: Text("hhh",
+              style: const TextStyle(fontSize: 20, color: Colors.white)),
+        ),
       ),
     );
   }
