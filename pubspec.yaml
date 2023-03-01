@@ -1,6 +1,6 @@
 name: flutter_floating
 description: Flutter免权限悬浮窗，支持全局、单页面悬浮，支持边缘吸附、位置保存、上下可滑动区域控制以及屏幕旋转窗口化后的位置修复等。
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/LvKang-insist/Floating
 
 environment:

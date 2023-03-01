@@ -4,7 +4,7 @@ import 'package:flutter_floating/floating_icon.dart';
 import 'button_widget.dart';
 import 'floating/assist/floating_slide_type.dart';
 import 'floating/floating.dart';
-import 'floating/listener/floating_listener.dart';
+import 'floating/listener/event_listener.dart';
 import 'floating/manager/floating_manager.dart';
 import 'floating_increment.dart';
 import 'page.dart';
@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
             left: 0,
             top: 150,
             slideBottomHeight: 100));
-    var oneListener = FloatingListener()
+    var oneListener = FloatingEventListener()
       ..openListener = () {
         print('显示1');
       }
@@ -82,8 +82,8 @@ class _MyHomePageState extends State<MyHomePage> {
         Floating(
           const FloatingIncrement(),
           slideType: FloatingSlideType.onRightAndTop,
-          right: 30,
           isShowLog: false,
+          right: 50,
           isSnapToEdge: true,
           top: 100,
         ));

@@ -16,19 +16,32 @@ class FloatingIncrement extends StatefulWidget {
 
 class _FloatingIncrementState extends State<FloatingIncrement> {
   int _counter = 0;
+  double width = 50;
+  double height = 50;
+  double x = 10;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       child: GestureDetector(
-        onTap: () => setState(() => _counter++),
-        child: Container(
-          width: 50,
-          height: 50,
+        onTap: () => setState(() {
+          if (width < 200) {
+            width = width + x;
+            height = height + x;
+          } else {
+            width = width - x;
+            height = height - x;
+          }
+          _counter++;
+        }),
+        child: AnimatedContainer(
+          width: width,
+          height: height,
           decoration: BoxDecoration(
               color: Colors.blue, borderRadius: BorderRadius.circular(50)),
           alignment: Alignment.center,
-          child: Text("hhh",
+          duration: Duration(milliseconds: 300),
+          child: Text("$_counter",
               style: const TextStyle(fontSize: 20, color: Colors.white)),
         ),
       ),

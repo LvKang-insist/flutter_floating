@@ -1,13 +1,12 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:flutter_floating/floating/listener/event_listener.dart';
 import 'package:flutter_floating/floating/utils/floating_log.dart';
 import 'package:flutter_floating/floating/view/floating_view.dart';
-import 'package:flutter_floating/main.dart';
 
 import 'assist/floating_data.dart';
 import 'assist/floating_slide_type.dart';
-import 'assist/hide_control.dart';
-import 'listener/floating_listener.dart';
+import 'control/hide_control.dart';
+
 
 /// @name：floating
 /// @package：
@@ -24,7 +23,7 @@ class Floating {
 
   late HideController _hideController;
 
-  final List<FloatingListener> _listener = [];
+  final List<FloatingEventListener> _listener = [];
 
   final double slideTopHeight;
   final double slideBottomHeight;
@@ -103,7 +102,7 @@ class Floating {
   ///只有在悬浮窗显示的状态下才可以使用，否则调用无效
   hideFloating() {
     if (!_isShowing) return;
-    _hideController.hideControl?.call(true);
+    _hideController.setFloatingHide(true);
     _isShowing = false;
     _notifyHideFloating();
   }
@@ -112,13 +111,13 @@ class Floating {
   ///只有在悬浮窗是隐藏的状态下才可以使用，否则调用无效
   showFloating() {
     if (_isShowing) return;
-    _hideController.hideControl?.call(false);
+    _hideController.setFloatingHide(false);
     _isShowing = true;
     _notifyShowFloating();
   }
 
   ///添加监听
-  addFloatingListener(FloatingListener listener) {
+  addFloatingListener(FloatingEventListener listener) {
     _listener.contains(listener) ? null : _listener.add(listener);
   }
 

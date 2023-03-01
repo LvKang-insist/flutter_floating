@@ -7,9 +7,14 @@ import 'package:flutter/material.dart';
 /// @des：
 
 class HideController {
-  Function(bool isHide)? hideControl;
+  Function(bool isHide)? _hideControl;
+
+
+  setFloatingHide(bool isHide){
+    _hideControl?.call(isHide);
+  }
 
   setHideControl(Function(bool isHide) hideControl) {
-    this.hideControl = hideControl;
+    _hideControl = hideControl;
   }
 }

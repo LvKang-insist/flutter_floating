@@ -4,7 +4,7 @@
 /// @time：2022/02/11 23:16
 /// @des：
 
-class FloatingListener {
+class FloatingEventListener {
   ///打开悬浮窗
   Function? openListener;
 

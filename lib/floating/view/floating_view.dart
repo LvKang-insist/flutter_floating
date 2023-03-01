@@ -4,8 +4,8 @@ import 'package:flutter/scheduler.dart';
 
 import '../assist/floating_data.dart';
 import '../assist/floating_slide_type.dart';
-import '../assist/hide_control.dart';
-import '../listener/floating_listener.dart';
+import '../control/hide_control.dart';
+import '../listener/event_listener.dart';
 import '../utils/floating_log.dart';
 
 /// @name：floating
@@ -20,7 +20,7 @@ class FloatingView extends StatefulWidget {
   final bool isPosCache;
   final bool isSnapToEdge;
   final HideController _hideControl;
-  final List<FloatingListener> _listener;
+  final List<FloatingEventListener> _listener;
   final FloatingLog _log;
   final double slideTopHeight;
   final double slideBottomHeight;
@@ -140,7 +140,16 @@ class _FloatingViewState extends State<FloatingView>
       },
       child: Container(
         key: _floatingGlobalKey,
-        child: widget.child,
+        child: NotificationListener(
+            onNotification: (notification) {
+              setState(() {
+                _setParentHeightAndWidget();
+                _resetWidthHeight();
+                setSlide();
+              });
+              return false;
+            },
+            child: SizeChangedLayoutNotifier(child: widget.child)),
       ),
     );
   }
