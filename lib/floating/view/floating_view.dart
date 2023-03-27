@@ -84,8 +84,9 @@ class _FloatingViewState extends State<FloatingView>
 
     setState(() {
       _setParentHeightAndWidget();
-      _resetWidthHeight();
+      _resetFloatingSize();
       _initPosition();
+      _clearCacheData();
     });
   }
 
@@ -142,11 +143,14 @@ class _FloatingViewState extends State<FloatingView>
         key: _floatingGlobalKey,
         child: NotificationListener(
             onNotification: (notification) {
-              setState(() {
-                _setParentHeightAndWidget();
-                _resetWidthHeight();
-                setSlide();
-              });
+              if (notification is SizeChangedLayoutNotification &&
+                  _isFloatingChangeSize()) {
+                setState(() {
+                  _setParentHeightAndWidget();
+                  _resetFloatingSize();
+                  setSlide();
+                });
+              }
               return false;
             },
             child: SizeChangedLayoutNotifier(child: widget.child)),
@@ -154,7 +158,16 @@ class _FloatingViewState extends State<FloatingView>
     );
   }
 
-  _resetWidthHeight() {
+  ///floating 宽高是否改变，true 表示改变
+  bool _isFloatingChangeSize() {
+    renderBox ??=
+        _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
+    var w = renderBox?.size.width ?? _defaultWidth;
+    var h = renderBox?.size.height ?? _defaultHeight;
+    return w != _width || h != _height;
+  }
+
+  _resetFloatingSize() {
     renderBox ??=
         _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
     _width = renderBox?.size.width ?? _defaultWidth;
@@ -318,6 +331,14 @@ class _FloatingViewState extends State<FloatingView>
         break;
     }
     _saveCacheData(_left, _top);
+  }
+
+  ///清除缓存数据
+  _clearCacheData() {
+    _floatingData.left = null;
+    _floatingData.top = null;
+    _floatingData.right = null;
+    _floatingData.bottom = null;
   }
 
   ///保存缓存位置

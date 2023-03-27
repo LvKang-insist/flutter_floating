@@ -45,6 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    
     //因为获取状态栏高度，所以延时一帧
     floatingOne = floatingManager.createFloating(
         "1",
