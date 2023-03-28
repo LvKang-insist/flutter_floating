@@ -63,11 +63,12 @@ class _FloatingViewState extends State<FloatingView>
 
   bool _isInitPosition = false;
 
+  bool _isFirstMove = false;
+
   late Widget _contentWidget;
 
   late AnimationController _slideController; //动画控制器
   late Animation<double> _slideAnimation; //动画
-
 
   bool isHide = false;
 
@@ -86,7 +87,6 @@ class _FloatingViewState extends State<FloatingView>
       _setParentHeightAndWidget();
       _resetFloatingSize();
       _initPosition();
-      _clearCacheData();
     });
   }
 
@@ -134,6 +134,10 @@ class _FloatingViewState extends State<FloatingView>
         _changePosition();
         //停止后靠边操作
         _animateMovePosition();
+        if (!_isFirstMove) {
+          _isFirstMove = true;
+          _clearCacheData();
+        }
       },
       //滑动取消
       onPanCancel: () {
@@ -145,11 +149,13 @@ class _FloatingViewState extends State<FloatingView>
             onNotification: (notification) {
               if (notification is SizeChangedLayoutNotification &&
                   _isFloatingChangeSize()) {
-                setState(() {
-                  _setParentHeightAndWidget();
-                  _resetFloatingSize();
-                  setSlide();
-                });
+                _setParentHeightAndWidget();
+                _resetFloatingSize();
+                if (widget.isSnapToEdge) {
+                  setState(() {
+                    setSlide();
+                  });
+                }
               }
               return false;
             },

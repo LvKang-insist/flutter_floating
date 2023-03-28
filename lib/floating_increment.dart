@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:marquee/marquee.dart';
 
 /// @name：floating_increment
 /// @package：
@@ -42,19 +41,9 @@ class _FloatingIncrementState extends State<FloatingIncrement> {
               color: Colors.blue, borderRadius: BorderRadius.circular(50)),
           alignment: Alignment.center,
           duration: const Duration(milliseconds: 300),
-          child: Marquee(
-            text: '欢迎使用一键式悬浮窗组件',
+          child: Text(
+            '$_counter',
             style: const TextStyle(fontWeight: FontWeight.bold),
-            scrollAxis: Axis.horizontal,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            blankSpace: 20.0,
-            velocity: 100.0,
-            pauseAfterRound: const Duration(seconds: 1),
-            startPadding: 10.0,
-            accelerationDuration: const Duration(seconds: 1),
-            accelerationCurve: Curves.linear,
-            decelerationDuration: const Duration(milliseconds: 500),
-            decelerationCurve: Curves.easeOut,
           ),
         ),
       ),

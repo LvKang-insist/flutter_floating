@@ -86,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
           slideType: FloatingSlideType.onRightAndTop,
           isShowLog: false,
           right: 50,
-          isSnapToEdge: true,
+          isSnapToEdge: false,
           top: 100,
         ));
   }

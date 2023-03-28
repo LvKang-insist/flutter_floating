@@ -6,7 +6,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating/page.dart';
-import 'package:marquee/marquee.dart';
 
 class FloatingPlay extends StatelessWidget {
   const FloatingPlay({Key? key}) : super(key: key);
@@ -67,12 +66,11 @@ class FloatingPlay extends StatelessWidget {
                 ],
               ),
             ),
-            Expanded(
+            const Expanded(
                 child: SizedBox(
               height: 22,
-              child: Marquee(
-                text: '欢迎使用一键式悬浮窗组件',
-                style: const TextStyle(fontSize: 15, color: Colors.redAccent),
+              child: Text('欢迎使用一键式悬浮窗组件',
+                style: TextStyle(fontSize: 15, color: Colors.redAccent),
               ),
             )),
             StreamBuilder<String>(builder: (context, snapshot) {
