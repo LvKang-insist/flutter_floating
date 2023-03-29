@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_floating/floating/control/change_position_control.dart';
 
 import '../assist/floating_data.dart';
 import '../assist/floating_slide_type.dart';
 import '../control/hide_control.dart';
+import '../control/scroll_position_control.dart';
 import '../listener/event_listener.dart';
 import '../utils/floating_log.dart';
 

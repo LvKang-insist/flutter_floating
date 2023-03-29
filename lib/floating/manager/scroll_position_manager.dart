@@ -1,10 +1,10 @@
-import 'package:flutter_floating/floating/control/change_position_control.dart';
+import '../control/scroll_position_control.dart';
 
 /// @name：scroll_position_manager
 /// @package：
 /// @author：345 QQ:1831712732
 /// @time：2023/03/29 11:08
-/// @des： 手动控制悬浮窗滑动管理
+/// @des： 手动控制悬浮窗滑动管理 ,通过[Floating.scrollManager]获取
 
 class ScrollPositionManager {
   final ScrollPositionControl _control;

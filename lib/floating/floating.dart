@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_floating/floating/control/change_position_control.dart';
 import 'package:flutter_floating/floating/listener/event_listener.dart';
 import 'package:flutter_floating/floating/manager/scroll_position_manager.dart';
 import 'package:flutter_floating/floating/utils/floating_log.dart';
@@ -8,6 +7,7 @@ import 'package:flutter_floating/floating/view/floating_view.dart';
 import 'assist/floating_data.dart';
 import 'assist/floating_slide_type.dart';
 import 'control/hide_control.dart';
+import 'control/scroll_position_control.dart';
 
 
 /// @name：floating
