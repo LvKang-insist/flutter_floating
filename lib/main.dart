@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_floating/flating_play.dart';
 import 'package:flutter_floating/floating_icon.dart';
+import 'package:flutter_floating/floating_scroll.dart';
 
 import 'button_widget.dart';
 import 'floating/assist/floating_slide_type.dart';
@@ -82,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
     floatingTwo = floatingManager.createFloating(
         "2",
         Floating(
-          const FloatingIncrement(),
+          const FloatingScroll(),
           slideType: FloatingSlideType.onRightAndTop,
           isShowLog: false,
           right: 50,
@@ -136,7 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 floatingManager
                     .createFloating(
                         DateTime.now().millisecondsSinceEpoch,
-                        Floating(const FloatingIncrement(),
+                        Floating(const FloatingIcon(),
                             slideType: FloatingSlideType.onLeftAndTop,
                             left: 0,
                             isShowLog: false,

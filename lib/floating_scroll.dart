@@ -9,14 +9,14 @@ import 'floating/manager/floating_manager.dart';
 /// @time：2022/02/10 23:21
 /// @des：
 
-class FloatingIncrement extends StatefulWidget {
-  const FloatingIncrement({Key? key}) : super(key: key);
+class FloatingScroll extends StatefulWidget {
+  const FloatingScroll({Key? key}) : super(key: key);
 
   @override
-  _FloatingIncrementState createState() => _FloatingIncrementState();
+  _FloatingScrollState createState() => _FloatingScrollState();
 }
 
-class _FloatingIncrementState extends State<FloatingIncrement> {
+class _FloatingScrollState extends State<FloatingScroll> {
   int _counter = 0;
   double width = 80;
   double height = 80;
@@ -28,26 +28,23 @@ class _FloatingIncrementState extends State<FloatingIncrement> {
       color: Colors.transparent,
       child: GestureDetector(
         onTap: () {
-          setState(() {
-          if (width < 200) {
-            width = width + x;
-            height = height + x;
-          } else {
-            width = width - x;
-            height = height - x;
+          if (x > 240) {
+            x = 30;
+          }else{
+            x = x + 30;
           }
-          _counter++;
-          });
+          var floating = floatingManager.getFloating("2");
+          floating.scrollManager().scrollTopLeft(x, x);
         },
         child: AnimatedContainer(
           width: width,
           height: height,
           decoration: BoxDecoration(
-              color: Colors.blue, borderRadius: BorderRadius.circular(50)),
+              color: Colors.yellow, borderRadius: BorderRadius.circular(50)),
           alignment: Alignment.center,
           duration: const Duration(milliseconds: 300),
           child: Text(
-            '放大缩小$_counter',
+            '点击移动$_counter',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
