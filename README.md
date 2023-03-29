@@ -18,6 +18,7 @@
 - 支持越界回弹，多指触摸移动，自适应屏幕旋转以及小窗口等情况
 - 自适应悬浮窗大小
 - 适配悬浮窗动画，对悬浮窗大小改变时位置进行适配
+- 代码内可更改浮窗位置
 - .....
 
 ### 打开方式
@@ -174,6 +175,7 @@ class _CustomPageState extends State<CustomPage> {
 }
 ```
 
+
 #### 添加悬浮窗各项回调
 
 ```dart
@@ -204,6 +206,7 @@ floatingOne.addFloatingListener(oneListener);
 - [使用方式](https://github.com/LvKang-insist/Floating/blob/master/lib/main.dart)
 - [悬浮窗对应方法](https://github.com/LvKang-insist/Floating/blob/master/lib/floating/floating.dart)
 - [全局悬浮窗管理对应方法](https://github.com/LvKang-insist/Floating/blob/master/lib/floating/manager/floating_manager.dart)
+- [修改悬浮窗位置](https://github.com/LvKang-insist/Floating/blob/master/lib/floating/manager/scroll_position_manager.dart)
 
 
 
