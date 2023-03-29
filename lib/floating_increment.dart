@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'floating/manager/floating_manager.dart';
+
 /// @name：floating_increment
 /// @package：
 /// @author：345 QQ:1831712732
@@ -16,33 +18,43 @@ class FloatingIncrement extends StatefulWidget {
 
 class _FloatingIncrementState extends State<FloatingIncrement> {
   int _counter = 0;
-  double width = 50;
-  double height = 50;
-  double x = 10;
+  double width = 80;
+  double height = 80;
+  double x = 30;
 
   @override
   Widget build(BuildContext context) {
     return Material(
+      color: Colors.transparent,
       child: GestureDetector(
-        onTap: () => setState(() {
-          if (width < 200) {
-            width = width + x;
-            height = height + x;
-          } else {
-            width = width - x;
-            height = height - x;
+        onTap: () {
+          // setState(() {
+          // if (width < 200) {
+          //   width = width + x;
+          //   height = height + x;
+          // } else {
+          //   width = width - x;
+          //   height = height - x;
+          // }
+          // _counter++;
+          // });
+          if (x > 240) {
+            x = 30;
+          }else{
+            x = x + 30;
           }
-          _counter++;
-        }),
+          var floating = floatingManager.getFloating("2");
+          floating.scrollManager().scrollTopLeft(x, x);
+        },
         child: AnimatedContainer(
           width: width,
           height: height,
           decoration: BoxDecoration(
-              color: Colors.blue, borderRadius: BorderRadius.circular(50)),
+              color: Colors.yellow, borderRadius: BorderRadius.circular(50)),
           alignment: Alignment.center,
           duration: const Duration(milliseconds: 300),
           child: Text(
-            '$_counter',
+            '点击移动$_counter',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),

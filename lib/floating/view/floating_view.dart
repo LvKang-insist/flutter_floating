@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_floating/floating/control/change_position_control.dart';
 
 import '../assist/floating_data.dart';
 import '../assist/floating_slide_type.dart';
@@ -21,13 +22,21 @@ class FloatingView extends StatefulWidget {
   final bool isSnapToEdge;
   final HideController _hideControl;
   final List<FloatingEventListener> _listener;
+  final ScrollPositionControl _scrollPositionControl;
   final FloatingLog _log;
   final double slideTopHeight;
   final double slideBottomHeight;
   final double moveOpacity; // 悬浮组件透明度
 
-  const FloatingView(this.child, this.floatingData, this.isPosCache,
-      this.isSnapToEdge, this._hideControl, this._listener, this._log,
+  const FloatingView(
+      this.child,
+      this.floatingData,
+      this.isPosCache,
+      this.isSnapToEdge,
+      this._hideControl,
+      this._listener,
+      this._scrollPositionControl,
+      this._log,
       {Key? key,
       this.slideTopHeight = 0,
       this.slideBottomHeight = 0,
@@ -70,6 +79,8 @@ class _FloatingViewState extends State<FloatingView>
   late AnimationController _slideController; //动画控制器
   late Animation<double> _slideAnimation; //动画
 
+  late AnimationController _scrollController; //动画控制器
+
   bool isHide = false;
 
   @override
@@ -82,7 +93,9 @@ class _FloatingViewState extends State<FloatingView>
     _slideController = AnimationController(
         duration: const Duration(milliseconds: 0), vsync: this);
     _slideAnimation = Tween(begin: 0.0, end: 0.0).animate(_slideController);
-
+    _scrollController = AnimationController(
+        duration: const Duration(milliseconds: 0), vsync: this);
+    _setScrollControl();
     setState(() {
       _setParentHeightAndWidget();
       _resetFloatingSize();
@@ -104,7 +117,7 @@ class _FloatingViewState extends State<FloatingView>
               child: Offstage(
                 offstage: isHide,
                 child: OrientationBuilder(builder: (context, orientation) {
-                  checkScreenChange();
+                  _checkScreenChange();
                   return Opacity(
                     child: _contentWidget,
                     opacity: _isInitPosition ? 1 : 0,
@@ -258,6 +271,79 @@ class _FloatingViewState extends State<FloatingView>
     _slideController.forward();
   }
 
+  _setScrollControl() {
+    var control = widget._scrollPositionControl;
+    control.setScrollTop((top) => _scrollY(top));
+    control.setScrollLeft((left) => _scrollX(left));
+    control.setScrollRight((right) => _scrollX(_parentWidth - right - _width));
+    control.setScrollBottom(
+        (bottom) => _scrollY(_parentHeight - bottom - _height));
+
+    control.setScrollTopLeft((top, left) => _scrollXY(left, top));
+    control.setScrollTopRight(
+        (top, right) => _scrollXY(_parentWidth - right - _width, top));
+    control.setScrollBottomLeft(
+        (bottom, left) => _scrollXY(left, _parentHeight - bottom - _height));
+    control.setScrollBottomRight((bottom, right) => _scrollXY(
+        _parentWidth - right - _width, _parentHeight - bottom - _height));
+  }
+
+  _scrollXY(double x, double y) {
+    if ((x > 0 || y > 0) && (_left != x || _top != y)) {
+      var control = widget._scrollPositionControl;
+      _scrollController.dispose();
+      _scrollController = AnimationController(
+          duration: Duration(milliseconds: control.timeMillis), vsync: this);
+      var t = Tween(begin: _top, end: y).animate(_scrollController);
+      var l = Tween(begin: _left, end: x).animate(_scrollController);
+      _scrollController.addListener(() {
+        _top = t.value.toDouble();
+        _left = l.value.toDouble();
+        setState(() {
+          _saveCacheData(_left, _top);
+          _notifyMove(_left, _top);
+        });
+      });
+      _scrollController.forward();
+    }
+  }
+
+  _scrollX(double left) {
+    if (left > 0 && _left != left) {
+      var control = widget._scrollPositionControl;
+      _scrollController.dispose();
+      _scrollController = AnimationController(
+          duration: Duration(milliseconds: control.timeMillis), vsync: this);
+      var anim = Tween(begin: _left, end: left).animate(_scrollController);
+      anim.addListener(() {
+        _left = anim.value.toDouble();
+        setState(() {
+          _saveCacheData(_left, _top);
+          _notifyMove(_left, _top);
+        });
+      });
+      _scrollController.forward();
+    }
+  }
+
+  _scrollY(double top) {
+    if (top > 0 && _top != top) {
+      var control = widget._scrollPositionControl;
+      _scrollController.dispose();
+      _scrollController = AnimationController(
+          duration: Duration(milliseconds: control.timeMillis), vsync: this);
+      var anim = Tween(begin: _top, end: top).animate(_scrollController);
+      anim.addListener(() {
+        _top = anim.value.toDouble();
+        setState(() {
+          _saveCacheData(_left, _top);
+          _notifyMove(_left, _top);
+        });
+      });
+      _scrollController.forward();
+    }
+  }
+
   ///恢复透明度
   _recoverOpacity() {
     if (_opacity != 1.0) {
@@ -281,7 +367,7 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   ///判断屏幕是否发生改变
-  checkScreenChange() {
+  _checkScreenChange() {
     //如果屏幕宽高为0，直接退出
     if (_parentWidth == 0 || _parentHeight == 0) return;
     var width = MediaQuery.of(context).size.width;

@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_floating/floating/control/change_position_control.dart';
 import 'package:flutter_floating/floating/listener/event_listener.dart';
+import 'package:flutter_floating/floating/manager/scroll_position_manager.dart';
 import 'package:flutter_floating/floating/utils/floating_log.dart';
 import 'package:flutter_floating/floating/view/floating_view.dart';
 
@@ -20,6 +22,9 @@ class Floating {
   late FloatingView _floatingView;
 
   late FloatingData _floatingData;
+
+  late ScrollPositionControl _scrollPositionControl;
+  late ScrollPositionManager _scrollPositionManager;
 
   late HideController _hideController;
 
@@ -63,6 +68,8 @@ class Floating {
         left: left, right: right, top: top, bottom: bottom);
     _log = FloatingLog(isShowLog);
     _hideController = HideController();
+    _scrollPositionControl = ScrollPositionControl();
+    _scrollPositionManager = ScrollPositionManager(_scrollPositionControl);
     _floatingView = FloatingView(
       child,
       _floatingData,
@@ -70,6 +77,7 @@ class Floating {
       isSnapToEdge,
       _hideController,
       _listener,
+      _scrollPositionControl,
       _log,
       moveOpacity: moveOpacity,
       slideTopHeight: slideTopHeight,
@@ -124,6 +132,11 @@ class Floating {
   ///设置 [FloatingLog] 标识
   setLogKey(String key) {
     _log.logKey = key;
+  }
+
+  /// 获取滑动管理
+  ScrollPositionManager scrollManager() {
+    return _scrollPositionManager;
   }
 
   _notifyClose() {
