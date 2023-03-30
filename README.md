@@ -15,7 +15,7 @@
 - 支持自定义禁止滑动区域，例如在 距离顶部 50 到底部的区域内滑动等
 - 完善的日志系统，可查看不同悬浮窗对应的 Log
 - 支持自定义位置方向及悬浮窗的各项指标
-- 支持越界回弹，多指触摸移动，自适应屏幕旋转以及小窗口等情况
+- 支持越界回弹，边缘自动吸附(是否吸附，吸附位置可选)，多指触摸移动，自适应屏幕旋转以及小窗口等情况
 - 自适应悬浮窗大小
 - 适配悬浮窗动画，对悬浮窗大小改变时位置进行适配
 - 代码内可更改浮窗位置
@@ -81,6 +81,7 @@ I/flutter (24648): Floating_Log 1645091422285 ： 移动 X:342.72727272727275 Y:
 ///请修改 [moveOpacity]为 1
 ///[slideTopHeight] 滑动边界控制，可滑动到顶部的距离
 ///[slideBottomHeight] 滑动边界控制，可滑动到底部的距离
+///[slideStopType] 移动后回弹停靠的位置 [lideStopType]
 Floating(
   Widget child, {
   FloatingSlideType slideType = FloatingSlideType.onRightAndBottom,
@@ -94,6 +95,7 @@ Floating(
   bool isSnapToEdge = true,
   this.slideTopHeight = 0,
   this.slideBottomHeight = 0,
+  SlideStopType slideStopType = SlideStopType.slideStopAutoType,
 })
 ```
 
