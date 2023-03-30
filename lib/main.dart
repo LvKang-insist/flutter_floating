@@ -5,6 +5,7 @@ import 'package:flutter_floating/floating_scroll.dart';
 
 import 'button_widget.dart';
 import 'floating/assist/floating_slide_type.dart';
+import 'floating/assist/slide_stop_type.dart';
 import 'floating/floating.dart';
 import 'floating/listener/event_listener.dart';
 import 'floating/manager/floating_manager.dart';
@@ -89,6 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
           right: 50,
           isSnapToEdge: true,
           top: 100,
+          slideStopType: SlideStopType.slideStopAutoType,
         ));
   }
 

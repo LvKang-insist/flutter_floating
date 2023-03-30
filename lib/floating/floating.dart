@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_floating/floating/assist/slide_stop_type.dart';
 import 'package:flutter_floating/floating/listener/event_listener.dart';
 import 'package:flutter_floating/floating/manager/scroll_position_manager.dart';
 import 'package:flutter_floating/floating/utils/floating_log.dart';
@@ -50,6 +51,7 @@ class Floating {
   ///请修改 [moveOpacity]为 1
   ///[slideTopHeight] 滑动边界控制，可滑动到顶部的距离
   ///[slideBottomHeight] 滑动边界控制，可滑动到底部的距离
+  ///[slideStopType] 移动后回弹停靠的位置
   Floating(
     Widget child, {
     FloatingSlideType slideType = FloatingSlideType.onRightAndBottom,
@@ -63,6 +65,7 @@ class Floating {
     bool isSnapToEdge = true,
     this.slideTopHeight = 0,
     this.slideBottomHeight = 0,
+    SlideStopType slideStopType = SlideStopType.slideStopAutoType,
   }) {
     _floatingData = FloatingData(slideType,
         left: left, right: right, top: top, bottom: bottom);
@@ -82,6 +85,7 @@ class Floating {
       moveOpacity: moveOpacity,
       slideTopHeight: slideTopHeight,
       slideBottomHeight: slideBottomHeight,
+      slideStopType: slideStopType,
     );
   }
 

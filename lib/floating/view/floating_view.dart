@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_floating/floating/assist/slide_stop_type.dart';
 
 import '../assist/floating_data.dart';
 import '../assist/floating_slide_type.dart';
@@ -27,6 +28,7 @@ class FloatingView extends StatefulWidget {
   final double slideTopHeight;
   final double slideBottomHeight;
   final double moveOpacity; // 悬浮组件透明度
+  final SlideStopType slideStopType;
 
   const FloatingView(
       this.child,
@@ -40,7 +42,8 @@ class FloatingView extends StatefulWidget {
       {Key? key,
       this.slideTopHeight = 0,
       this.slideBottomHeight = 0,
-      this.moveOpacity = 0.3})
+      this.moveOpacity = 0.3,
+      this.slideStopType = SlideStopType.slideStopAutoType})
       : super(key: key);
 
   @override
@@ -216,26 +219,37 @@ class _FloatingViewState extends State<FloatingView>
       _notifyMoveEnd(_left, _top);
       return;
     }
-    double centerX = _left + _width / 2.0;
     double toPositionX = 0;
     double needMoveLength = 0;
 
-    //计算靠边的距离
-    if (centerX <= _parentWidth / 2) {
-      needMoveLength = _left;
-    } else {
-      //靠右边的距离
-      needMoveLength = (_parentWidth - _left - _width);
+    switch (widget.slideStopType) {
+      case SlideStopType.slideStopLeftType:
+        needMoveLength = _left; //靠左边的距离
+        toPositionX = 0; //回到左边缘距离
+        break;
+      case SlideStopType.slideStopRightType:
+        needMoveLength = (_parentWidth - _left - _width); //靠右边的距离
+        toPositionX = _parentWidth - _width; //回到右边缘距离
+        break;
+      case SlideStopType.slideStopAutoType:
+        double centerX = _left + _width / 2.0; //中心点位置
+        if (centerX <= _parentWidth / 2) {
+          needMoveLength = _left; //靠左边的距离
+        } else {
+          needMoveLength = (_parentWidth - _left - _width); //靠右边的距离
+        }
+        if (centerX <= _parentWidth / 2.0) {
+          toPositionX = 0; //回到左边缘
+        } else {
+          toPositionX = _parentWidth - _width; //回到右边缘
+        }
+        break;
     }
+
     //根据滑动距离计算滑动时间
     double parent = (needMoveLength / (_parentWidth / 2.0));
-    int time = (600 * parent).ceil();
+    int time = (500 * parent).ceil();
 
-    if (centerX <= _parentWidth / 2.0) {
-      toPositionX = 0; //回到左边缘
-    } else {
-      toPositionX = _parentWidth - _width; //回到右边缘
-    }
     //执行动画
     _animationSlide(_left, toPositionX, time, () {
       //恢复透明度
