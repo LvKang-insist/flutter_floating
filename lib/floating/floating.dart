@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_floating/floating/assist/slide_stop_type.dart';
+import 'package:flutter_floating/floating/control/common_control.dart';
 import 'package:flutter_floating/floating/listener/event_listener.dart';
 import 'package:flutter_floating/floating/manager/scroll_position_manager.dart';
 import 'package:flutter_floating/floating/utils/floating_log.dart';
@@ -7,9 +8,7 @@ import 'package:flutter_floating/floating/view/floating_view.dart';
 
 import 'assist/floating_data.dart';
 import 'assist/floating_slide_type.dart';
-import 'control/hide_control.dart';
 import 'control/scroll_position_control.dart';
-
 
 /// @name：floating
 /// @package：
@@ -27,7 +26,7 @@ class Floating {
   late ScrollPositionControl _scrollPositionControl;
   late ScrollPositionManager _scrollPositionManager;
 
-  late HideController _hideController;
+  late CommonControl _commonControl;
 
   final List<FloatingEventListener> _listener = [];
 
@@ -49,6 +48,7 @@ class Floating {
   ///[isPosCache]启用之后当调用之后 [Floating.close] 重新调用 [Floating.open] 后会保持之前的位置
   ///[isSnapToEdge]是否自动吸附边缘，默认为 true ，请注意，移动默认是有透明动画的，如需要关闭透明度动画，
   ///请修改 [moveOpacity]为 1
+  ///[isStartScroll] 是否启动悬浮窗滑动，默认为 true，false 表示无法滑动悬浮窗
   ///[slideTopHeight] 滑动边界控制，可滑动到顶部的距离
   ///[slideBottomHeight] 滑动边界控制，可滑动到底部的距离
   ///[slideStopType] 移动后回弹停靠的位置
@@ -63,6 +63,7 @@ class Floating {
     bool isPosCache = true,
     bool isShowLog = true,
     bool isSnapToEdge = true,
+    bool isStartScroll = true,
     this.slideTopHeight = 0,
     this.slideBottomHeight = 0,
     SlideStopType slideStopType = SlideStopType.slideStopAutoType,
@@ -70,7 +71,8 @@ class Floating {
     _floatingData = FloatingData(slideType,
         left: left, right: right, top: top, bottom: bottom);
     _log = FloatingLog(isShowLog);
-    _hideController = HideController();
+    _commonControl = CommonControl();
+    _commonControl.setInitIsScroll(isStartScroll);
     _scrollPositionControl = ScrollPositionControl();
     _scrollPositionManager = ScrollPositionManager(_scrollPositionControl);
     _floatingView = FloatingView(
@@ -78,9 +80,9 @@ class Floating {
       _floatingData,
       isPosCache,
       isSnapToEdge,
-      _hideController,
       _listener,
       _scrollPositionControl,
+      _commonControl,
       _log,
       moveOpacity: moveOpacity,
       slideTopHeight: slideTopHeight,
@@ -94,12 +96,12 @@ class Floating {
   ///否则请使用 [hideFloating] 进行隐藏，使用 [showFloating]进行显示，而不是使用 [close]
   open(BuildContext context) {
     if (_isShowing) return;
-      _overlayEntry = OverlayEntry(builder: (context) {
-        return _floatingView;
-      });
-      Overlay.of(context)?.insert(_overlayEntry);
-      _isShowing = true;
-      _notifyOpen();
+    _overlayEntry = OverlayEntry(builder: (context) {
+      return _floatingView;
+    });
+    Overlay.of(context)?.insert(_overlayEntry);
+    _isShowing = true;
+    _notifyOpen();
   }
 
   ///关闭悬浮窗
@@ -114,7 +116,7 @@ class Floating {
   ///只有在悬浮窗显示的状态下才可以使用，否则调用无效
   hideFloating() {
     if (!_isShowing) return;
-    _hideController.setFloatingHide(true);
+    _commonControl.setFloatingHide(true);
     _isShowing = false;
     _notifyHideFloating();
   }
@@ -123,7 +125,7 @@ class Floating {
   ///只有在悬浮窗是隐藏的状态下才可以使用，否则调用无效
   showFloating() {
     if (_isShowing) return;
-    _hideController.setFloatingHide(false);
+    _commonControl.setFloatingHide(false);
     _isShowing = true;
     _notifyShowFloating();
   }
@@ -131,6 +133,12 @@ class Floating {
   ///添加监听
   addFloatingListener(FloatingEventListener listener) {
     _listener.contains(listener) ? null : _listener.add(listener);
+  }
+
+  ///设置是否启动悬浮窗滑动
+  ///[isScroll] true 表示启动，否则关闭
+  setIsStartScroll(bool isScroll) {
+    _commonControl.setIsStartScroll(isScroll);
   }
 
   ///设置 [FloatingLog] 标识

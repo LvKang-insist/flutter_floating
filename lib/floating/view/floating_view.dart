@@ -2,10 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_floating/floating/assist/slide_stop_type.dart';
+import 'package:flutter_floating/floating/control/common_control.dart';
 
 import '../assist/floating_data.dart';
 import '../assist/floating_slide_type.dart';
-import '../control/hide_control.dart';
 import '../control/scroll_position_control.dart';
 import '../listener/event_listener.dart';
 import '../utils/floating_log.dart';
@@ -21,7 +21,6 @@ class FloatingView extends StatefulWidget {
   final FloatingData floatingData;
   final bool isPosCache;
   final bool isSnapToEdge;
-  final HideController _hideControl;
   final List<FloatingEventListener> _listener;
   final ScrollPositionControl _scrollPositionControl;
   final FloatingLog _log;
@@ -29,15 +28,16 @@ class FloatingView extends StatefulWidget {
   final double slideBottomHeight;
   final double moveOpacity; // 悬浮组件透明度
   final SlideStopType slideStopType;
+  final CommonControl _commonControl;
 
   const FloatingView(
       this.child,
       this.floatingData,
       this.isPosCache,
       this.isSnapToEdge,
-      this._hideControl,
       this._listener,
       this._scrollPositionControl,
+      this._commonControl,
       this._log,
       {Key? key,
       this.slideTopHeight = 0,
@@ -84,12 +84,17 @@ class _FloatingViewState extends State<FloatingView>
 
   bool isHide = false;
 
+  bool _isStartScroll = true; //是否启动悬浮窗滑动
+
   @override
   void initState() {
     super.initState();
     _floatingData = widget.floatingData;
-    widget._hideControl
-        .setHideControl((isHide) => setState(() => this.isHide = isHide));
+    widget._commonControl
+        .setHideControlListener((isHide) => setState(() => this.isHide = isHide));
+    _isStartScroll = widget._commonControl.getInitIsScroll();
+    widget._commonControl
+        .setIsStartScrollListener((isScroll) => _isStartScroll = isScroll);
     _contentWidget = _content();
     _slideController = AnimationController(
         duration: const Duration(milliseconds: 0), vsync: this);
@@ -137,6 +142,7 @@ class _FloatingViewState extends State<FloatingView>
       onTapCancel: () => _notifyUp(_left, _top),
       //滑动
       onPanUpdate: (DragUpdateDetails details) {
+        if (!_checkStartScroll()) return;
         _left += details.delta.dx;
         _top += details.delta.dy;
         _opacity = widget.moveOpacity;
@@ -145,12 +151,14 @@ class _FloatingViewState extends State<FloatingView>
       },
       //滑动结束
       onPanEnd: (DragEndDetails details) {
+        if (!_checkStartScroll()) return;
         _changePosition();
         //停止后靠边操作
         _animateMovePosition();
       },
       //滑动取消
       onPanCancel: () {
+        if (!_checkStartScroll()) return;
         _changePosition();
       },
       child: Container(
@@ -375,6 +383,11 @@ class _FloatingViewState extends State<FloatingView>
       setSlide();
     }
     _isInitPosition = true;
+  }
+
+  ///检测是否开启滑动
+  bool _checkStartScroll() {
+    return _isStartScroll;
   }
 
   ///判断屏幕是否发生改变
