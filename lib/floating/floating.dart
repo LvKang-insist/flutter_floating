@@ -99,7 +99,7 @@ class Floating {
     _overlayEntry = OverlayEntry(builder: (context) {
       return _floatingView;
     });
-    Overlay.of(context)?.insert(_overlayEntry);
+    Overlay.of(context).insert(_overlayEntry);
     _isShowing = true;
     _notifyOpen();
   }
