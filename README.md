@@ -25,7 +25,7 @@
 
 项目迁移至 flutter3.0，3.0 以下可能无法使用，请自行升级flutters SDK
 ```
-flutter_floating: ^1.0.4 
+flutter_floating: ^1.0.6 
 ```
 #### 效果图
 
