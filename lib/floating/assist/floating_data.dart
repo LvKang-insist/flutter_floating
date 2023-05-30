@@ -15,7 +15,10 @@ class FloatingData {
 
   double? bottom;
 
+  double snapToEdgeSpace = 0;
+
   FloatingSlideType slideType;
 
-  FloatingData(this.slideType, {this.left, this.top, this.right, this.bottom});
+  FloatingData(this.slideType,
+      {this.left, this.top, this.right, this.bottom, this.snapToEdgeSpace = 0});
 }

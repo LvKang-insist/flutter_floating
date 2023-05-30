@@ -30,8 +30,6 @@ class Floating {
 
   final List<FloatingEventListener> _listener = [];
 
-  final double slideTopHeight;
-  final double slideBottomHeight;
   late FloatingLog _log;
   String logKey = "";
 
@@ -51,6 +49,7 @@ class Floating {
   ///[isStartScroll] 是否启动悬浮窗滑动，默认为 true，false 表示无法滑动悬浮窗
   ///[slideTopHeight] 滑动边界控制，可滑动到顶部的距离
   ///[slideBottomHeight] 滑动边界控制，可滑动到底部的距离
+  ///[snapToEdgeSpace] 边缘吸附的距离
   ///[slideStopType] 移动后回弹停靠的位置
   Floating(
     Widget child, {
@@ -64,12 +63,17 @@ class Floating {
     bool isShowLog = true,
     bool isSnapToEdge = true,
     bool isStartScroll = true,
-    this.slideTopHeight = 0,
-    this.slideBottomHeight = 0,
+    double slideTopHeight = 0,
+    double slideBottomHeight = 0,
+    double snapToEdgeSpace = 0,
     SlideStopType slideStopType = SlideStopType.slideStopAutoType,
   }) {
     _floatingData = FloatingData(slideType,
-        left: left, right: right, top: top, bottom: bottom);
+        left: left,
+        right: right,
+        top: top,
+        bottom: bottom,
+        snapToEdgeSpace: snapToEdgeSpace);
     _log = FloatingLog(isShowLog);
     _commonControl = CommonControl();
     _commonControl.setInitIsScroll(isStartScroll);
@@ -99,7 +103,7 @@ class Floating {
     _overlayEntry = OverlayEntry(builder: (context) {
       return _floatingView;
     });
-    Overlay.of(context).insert(_overlayEntry);
+    Overlay.of(context)?.insert(_overlayEntry);
     _isShowing = true;
     _notifyOpen();
   }

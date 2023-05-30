@@ -80,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ..moveEndListener = (x, y) {
         print('移动结束 $x  $y  1');
       };
-    floatingOne.addFloatingListener(oneListener);
+    // floatingOne.addFloatingListener(oneListener);
     floatingTwo = floatingManager.createFloating(
         "2",
         Floating(
@@ -89,6 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
           isShowLog: false,
           right: 50,
           isSnapToEdge: true,
+          snapToEdgeSpace: 50,
           top: 100,
           slideStopType: SlideStopType.slideStopAutoType,
         ));

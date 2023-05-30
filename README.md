@@ -23,9 +23,9 @@
 
 ### 打开方式
 
-项目迁移至 flutter3.0，3.0 以下可能无法使用，请自行升级flutters SDK
+项目迁移至 flutter3.0，目前使用的SDK是 flutter 3.0.3，3.0 以下可能无法使用，请自行升级flutters SDK
 ```
-flutter_floating: ^1.0.6 
+flutter_floating: ^1.0.7 
 ```
 #### 效果图
 

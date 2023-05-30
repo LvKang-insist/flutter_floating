@@ -90,8 +90,8 @@ class _FloatingViewState extends State<FloatingView>
   void initState() {
     super.initState();
     _floatingData = widget.floatingData;
-    widget._commonControl
-        .setHideControlListener((isHide) => setState(() => this.isHide = isHide));
+    widget._commonControl.setHideControlListener(
+        (isHide) => setState(() => this.isHide = isHide));
     _isStartScroll = widget._commonControl.getInitIsScroll();
     widget._commonControl
         .setIsStartScrollListener((isScroll) => _isStartScroll = isScroll);
@@ -233,11 +233,12 @@ class _FloatingViewState extends State<FloatingView>
     switch (widget.slideStopType) {
       case SlideStopType.slideStopLeftType:
         needMoveLength = _left; //靠左边的距离
-        toPositionX = 0; //回到左边缘距离
+        toPositionX = 0 + _floatingData.snapToEdgeSpace; //回到左边缘距离
         break;
       case SlideStopType.slideStopRightType:
         needMoveLength = (_parentWidth - _left - _width); //靠右边的距离
-        toPositionX = _parentWidth - _width; //回到右边缘距离
+        toPositionX =
+            _parentWidth - _width - _floatingData.snapToEdgeSpace; //回到右边缘距离
         break;
       case SlideStopType.slideStopAutoType:
         double centerX = _left + _width / 2.0; //中心点位置
@@ -247,9 +248,10 @@ class _FloatingViewState extends State<FloatingView>
           needMoveLength = (_parentWidth - _left - _width); //靠右边的距离
         }
         if (centerX <= _parentWidth / 2.0) {
-          toPositionX = 0; //回到左边缘
+          toPositionX = 0 + _floatingData.snapToEdgeSpace; //回到左边缘
         } else {
-          toPositionX = _parentWidth - _width; //回到右边缘
+          toPositionX =
+              _parentWidth - _width - _floatingData.snapToEdgeSpace; //回到右边缘
         }
         break;
     }
