@@ -1,3 +1,5 @@
+import 'package:flutter_floating/floating/assist/Point.dart';
+
 /// @name：common_control
 /// @package：
 /// @author：345 QQ:1831712732
@@ -5,10 +7,22 @@
 /// @des： 通用的回调
 
 class CommonControl {
-
   Function(bool isHide)? _hideControl;
   Function(bool isScroll)? _startScroll;
+   Point<double> point =  Point(0, 0);
+  Function(Point<double> point)? _floatingPoint;
   bool _initIsScroll = false;
+
+  ///设置 Floating 位置监听
+  setFloatingPoint(Function(Point<double> point) floatingPoint) {
+    _floatingPoint = floatingPoint;
+  }
+
+  /// 获取 Floating 位置
+  Point<double> getFloatingPoint() {
+    _floatingPoint?.call(point);
+    return point;
+  }
 
   ///设置初始化时是否可以滑动
   setInitIsScroll(bool initIsScroll) {
@@ -31,9 +45,10 @@ class CommonControl {
   }
 
   ///设置隐藏状态
-  setFloatingHide(bool isHide){
+  setFloatingHide(bool isHide) {
     _hideControl?.call(isHide);
   }
+
   ///设置隐藏监听
   setHideControlListener(Function(bool isHide) hideControl) {
     _hideControl = hideControl;

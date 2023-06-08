@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_floating/floating/assist/Point.dart';
 import 'package:flutter_floating/floating/assist/slide_stop_type.dart';
 import 'package:flutter_floating/floating/control/common_control.dart';
 import 'package:flutter_floating/floating/listener/event_listener.dart';
@@ -40,8 +41,9 @@ class Floating {
   ///[child]需要悬浮的 widget
   ///[slideType]，可参考[FloatingSlideType]
   ///
-  ///[top],[left],[left],[bottom] 对应 [slideType]，
+  ///[top],[left],[left],[bottom],[point] 对应 [slideType]，
   ///例如设置[slideType]为[FloatingSlideType.onRightAndBottom]，则需要传入[bottom]和[right]
+  ///设置 [slideType]为 [FloatingSlideType.onPoint] 则需要传入 [point]
   ///
   ///[isPosCache]启用之后当调用之后 [Floating.close] 重新调用 [Floating.open] 后会保持之前的位置
   ///[isSnapToEdge]是否自动吸附边缘，默认为 true ，请注意，移动默认是有透明动画的，如需要关闭透明度动画，
@@ -58,6 +60,7 @@ class Floating {
     double? left,
     double? right,
     double? bottom,
+    Point<double>? point,
     double moveOpacity = 0.3,
     bool isPosCache = true,
     bool isShowLog = true,
@@ -73,6 +76,7 @@ class Floating {
         right: right,
         top: top,
         bottom: bottom,
+        point: point,
         snapToEdgeSpace: snapToEdgeSpace);
     _log = FloatingLog(isShowLog);
     _commonControl = CommonControl();
@@ -103,7 +107,7 @@ class Floating {
     _overlayEntry = OverlayEntry(builder: (context) {
       return _floatingView;
     });
-    Overlay.of(context)?.insert(_overlayEntry);
+    Overlay.of(context).insert(_overlayEntry);
     _isShowing = true;
     _notifyOpen();
   }
@@ -151,8 +155,13 @@ class Floating {
   }
 
   /// 获取滑动管理
-  ScrollPositionManager scrollManager() {
+  ScrollPositionManager getScrollManager() {
     return _scrollPositionManager;
+  }
+
+  /// 获取悬浮位置[Size.width]表示距离left距离，[Size.height]表示top距离
+  Point getFloatingPoint() {
+    return _commonControl.getFloatingPoint();
   }
 
   _notifyClose() {

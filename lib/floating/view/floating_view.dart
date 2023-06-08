@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_floating/floating/assist/slide_stop_type.dart';
 import 'package:flutter_floating/floating/control/common_control.dart';
 
+import '../assist/Point.dart';
 import '../assist/floating_data.dart';
 import '../assist/floating_slide_type.dart';
 import '../control/scroll_position_control.dart';
@@ -95,6 +96,10 @@ class _FloatingViewState extends State<FloatingView>
     _isStartScroll = widget._commonControl.getInitIsScroll();
     widget._commonControl
         .setIsStartScrollListener((isScroll) => _isStartScroll = isScroll);
+    widget._commonControl.setFloatingPoint((Point<double> point) {
+      point.x = _left;
+      point.y = _top;
+    });
     _contentWidget = _content();
     _slideController = AnimationController(
         duration: const Duration(milliseconds: 0), vsync: this);
@@ -224,6 +229,7 @@ class _FloatingViewState extends State<FloatingView>
   _animateMovePosition() {
     if (!widget.isSnapToEdge) {
       _recoverOpacity();
+      _saveCacheData(_left, _top);
       _notifyMoveEnd(_left, _top);
       return;
     }
@@ -447,6 +453,10 @@ class _FloatingViewState extends State<FloatingView>
         _left = _parentWidth - (_floatingData.right ?? 0) - _width;
         _top = _parentHeight - (_floatingData.bottom ?? 0) - _height;
         break;
+      case FloatingSlideType.onPoint:
+        _top = _floatingData.point?.y ?? 0.0;
+        _left = _floatingData.point?.x ?? 0.0;
+        break;
     }
     _saveCacheData(_left, _top);
   }
@@ -483,28 +493,28 @@ class _FloatingViewState extends State<FloatingView>
   _notifyMove(double x, double y) {
     widget._log.log("移动 X:$x Y:$y");
     for (var element in widget._listener) {
-      element.moveListener?.call(x, y);
+      element.moveListener?.call(Point(x, y));
     }
   }
 
   _notifyMoveEnd(double x, double y) {
     widget._log.log("移动结束 X:$x Y:$y");
     for (var element in widget._listener) {
-      element.moveEndListener?.call(x, y);
+      element.moveEndListener?.call(Point(x, y));
     }
   }
 
   _notifyDown(double x, double y) {
     widget._log.log("按下 X:$x Y:$y");
     for (var element in widget._listener) {
-      element.downListener?.call(x, y);
+      element.downListener?.call(Point(x, y));
     }
   }
 
   _notifyUp(double x, double y) {
     widget._log.log("抬起 X:$x Y:$y");
     for (var element in widget._listener) {
-      element.upListener?.call(x, y);
+      element.upListener?.call(Point(x, y));
     }
   }
 

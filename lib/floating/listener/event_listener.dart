@@ -1,3 +1,6 @@
+
+import 'package:flutter_floating/floating/assist/Point.dart';
+
 /// @name：FloatingListener
 /// @package：
 /// @author：345 QQ:1831712732
@@ -18,14 +21,14 @@ class FloatingEventListener {
   Function? showFloatingListener;
 
   ///手指按下
-  Function(double x, double y)? downListener;
+  Function(Point<double>)? downListener;
 
   ///手指抬起
-  Function(double x, double y)? upListener;
+  Function(Point<double>)? upListener;
 
   ///手指移动
-  Function(double x, double y)? moveListener;
+  Function(Point<double>)? moveListener;
 
   ///手指移动结束
-  Function(double x, double y)? moveEndListener;
+  Function(Point<double>)? moveEndListener;
 }

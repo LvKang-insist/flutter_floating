@@ -34,7 +34,7 @@ class _FloatingScrollState extends State<FloatingScroll> {
             x = x + 30;
           }
           var floating = floatingManager.getFloating("2");
-          floating.scrollManager().scrollTopLeft(x, x);
+          floating.getScrollManager().scrollTopLeft(x, x);
         },
         child: AnimatedContainer(
           width: width,

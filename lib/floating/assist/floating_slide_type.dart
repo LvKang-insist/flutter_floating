@@ -15,5 +15,8 @@ enum FloatingSlideType {
   onRightAndTop,
 
   ///右下
-  onRightAndBottom
+  onRightAndBottom,
+
+  ///根据 x,y 确定位置
+  onPoint,
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_floating/flating_play.dart';
+import 'package:flutter_floating/floating/assist/Point.dart';
 import 'package:flutter_floating/floating_icon.dart';
 import 'package:flutter_floating/floating_scroll.dart';
 
@@ -48,44 +48,25 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    
+
     //因为获取状态栏高度，所以延时一帧
     floatingOne = floatingManager.createFloating(
         "1",
         Floating(const FloatingIcon(),
-            slideType: FloatingSlideType.onLeftAndTop,
+            slideType: FloatingSlideType.onRightAndBottom,
             isShowLog: false,
             isSnapToEdge: false,
             isPosCache: true,
             moveOpacity: 1,
-            left: 0,
-            top: 150,
+            left: 100,
+            bottom: 100,
             slideBottomHeight: 100));
-    var oneListener = FloatingEventListener()
-      ..openListener = () {
-        print('显示1');
-      }
-      ..closeListener = () {
-        print('关闭1');
-      }
-      ..downListener = (x, y) {
-        print('按下1');
-      }
-      ..upListener = (x, y) {
-        print('抬起1');
-      }
-      ..moveListener = (x, y) {
-        print('移动 $x  $y  1');
-      }
-      ..moveEndListener = (x, y) {
-        print('移动结束 $x  $y  1');
-      };
-    // floatingOne.addFloatingListener(oneListener);
+
     floatingTwo = floatingManager.createFloating(
         "2",
         Floating(
           const FloatingScroll(),
-          slideType: FloatingSlideType.onRightAndTop,
+          slideType: FloatingSlideType.onPoint,
           isShowLog: false,
           right: 50,
           isSnapToEdge: true,
@@ -93,6 +74,20 @@ class _MyHomePageState extends State<MyHomePage> {
           top: 100,
           slideStopType: SlideStopType.slideStopAutoType,
         ));
+    var twoListener = FloatingEventListener()
+      ..closeListener = () {
+        var point = floatingTwo.getFloatingPoint();
+        print('关闭  ${point.x}      --         ${point.y}');
+      }
+      ..hideFloatingListener = () {
+        var point = floatingTwo.getFloatingPoint();
+        print('隐藏  ${point.x}      --         ${point.y}');
+      }
+      ..moveEndListener = (point) {
+        var point = floatingTwo.getFloatingPoint();
+        print('移动结束  ${point.x}      --         ${point.y}');
+      };
+    floatingTwo.addFloatingListener(twoListener);
   }
 
   void _startCustomPage() {
