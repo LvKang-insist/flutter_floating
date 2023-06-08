@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_floating/floating/assist/Point.dart';
 import 'package:flutter_floating/floating_icon.dart';
 import 'package:flutter_floating/floating_scroll.dart';
-
 import 'button_widget.dart';
 import 'floating/assist/floating_slide_type.dart';
 import 'floating/assist/slide_stop_type.dart';
@@ -76,16 +74,16 @@ class _MyHomePageState extends State<MyHomePage> {
         ));
     var twoListener = FloatingEventListener()
       ..closeListener = () {
-        var point = floatingTwo.getFloatingPoint();
-        print('关闭  ${point.x}      --         ${point.y}');
+        // var point = floatingTwo.getFloatingPoint();
+        // print('关闭  ${point.x}      --         ${point.y}');
       }
       ..hideFloatingListener = () {
-        var point = floatingTwo.getFloatingPoint();
-        print('隐藏  ${point.x}      --         ${point.y}');
+        // var point = floatingTwo.getFloatingPoint();
+        // print('隐藏  ${point.x}      --         ${point.y}');
       }
       ..moveEndListener = (point) {
-        var point = floatingTwo.getFloatingPoint();
-        print('移动结束  ${point.x}      --         ${point.y}');
+        // var point = floatingTwo.getFloatingPoint();
+        // print('移动结束  ${point.x}      --         ${point.y}');
       };
     floatingTwo.addFloatingListener(twoListener);
   }

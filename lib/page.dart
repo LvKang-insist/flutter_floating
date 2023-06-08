@@ -1,10 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating/floating/manager/floating_manager.dart';
-
-import 'floating/assist/floating_slide_type.dart';
-import 'floating/floating.dart';
-import 'floating_increment.dart';
 
 /// @name：page
 /// @package：

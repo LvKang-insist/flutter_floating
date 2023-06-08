@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// @name：log
 /// @package：
 /// @author：345 QQ:1831712732
