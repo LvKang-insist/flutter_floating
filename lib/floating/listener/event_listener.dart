@@ -27,8 +27,8 @@ class FloatingEventListener {
   Function(Point<double>)? upListener;
 
   ///手指移动
-  Function(Point<double>)? moveListener;
+  Function(Point<double>,int slideType)? moveListener;
 
-  ///手指移动结束
-  Function(Point<double>)? moveEndListener;
+  ///手指移动结束 ,slideType 0 左边，1右边
+  Function(Point<double>,int slideType)? moveEndListener;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_floating/floating/floating_demo.dart';
 import 'package:flutter_floating/floating_icon.dart';
 import 'package:flutter_floating/floating_scroll.dart';
 import 'button_widget.dart';
@@ -41,60 +42,27 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late Floating floatingOne;
-  late Floating floatingTwo;
 
   @override
   void initState() {
     super.initState();
+  }
 
-    //因为获取状态栏高度，所以延时一帧
+  void _startOpen() {
+    floatingManager.closeAllFloating();
+    var top =MediaQuery.of(context).padding.top;
     floatingOne = floatingManager.createFloating(
         "1",
-        Floating(const FloatingIcon(),
+        Floating(Demo(),
             slideType: FloatingSlideType.onRightAndBottom,
             isShowLog: false,
-            isSnapToEdge: false,
+            isSnapToEdge: true,
             isPosCache: true,
             moveOpacity: 1,
-            left: 100,
-            bottom: 100,
-            slideBottomHeight: 100));
-
-    floatingTwo = floatingManager.createFloating(
-        "2",
-        Floating(
-          const FloatingScroll(),
-          slideType: FloatingSlideType.onPoint,
-          isShowLog: false,
-          right: 50,
-          isSnapToEdge: true,
-          snapToEdgeSpace: 50,
-          top: 100,
-          slideStopType: SlideStopType.slideStopAutoType,
-        ));
-    var twoListener = FloatingEventListener()
-      ..closeListener = () {
-        // var point = floatingTwo.getFloatingPoint();
-        // print('关闭  ${point.x}      --         ${point.y}');
-      }
-      ..hideFloatingListener = () {
-        // var point = floatingTwo.getFloatingPoint();
-        // print('隐藏  ${point.x}      --         ${point.y}');
-      }
-      ..moveEndListener = (point) {
-        // var point = floatingTwo.getFloatingPoint();
-        // print('移动结束  ${point.x}      --         ${point.y}');
-      };
-    floatingTwo.addFloatingListener(twoListener);
+            slideTopHeight: top,
+            bottom: 100));
+    floatingOne.open(context);
   }
-
-  void _startCustomPage() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-      return const CustomPage();
-    }));
-  }
-
-  var isOpen = false;
 
   @override
   Widget build(BuildContext context) {
@@ -108,69 +76,31 @@ class _MyHomePageState extends State<MyHomePage> {
             // horizontal).
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              const SizedBox(height: 30),
-              ButtonWidget(
-                "显示/关闭左上角没有回弹的悬浮窗",
-                () {
-                  var floating = floatingManager.getFloating("1");
-                  floating.isShowing
-                      ? floating.close()
-                      : floating.open(context);
-                },
-              ),
-              ButtonWidget("显示右上角悬浮窗", () {
-                if (!isOpen) {
-                  floatingTwo.open(context);
-                  isOpen = true;
-                } else {
-                  floatingTwo.showFloating();
-                }
-              }),
-              ButtonWidget("隐藏右上角悬浮窗", () {
-                floatingTwo.hideFloating();
-              }),
-              ButtonWidget("添加没有移动动画的悬浮窗", () {
-                floatingManager
-                    .createFloating(
-                        DateTime.now().millisecondsSinceEpoch,
-                        Floating(const FloatingIcon(),
-                            slideType: FloatingSlideType.onLeftAndTop,
-                            left: 0,
-                            isShowLog: false,
-                            isPosCache: true,
-                            moveOpacity: 1,
-                            top: floatingManager.floatingSize() * 80))
-                    .open(context);
-              }),
-              ButtonWidget("添加禁止滑动到状态栏和底部的悬浮窗", () {
-                floatingManager
-                    .createFloating(
-                        DateTime.now().millisecondsSinceEpoch,
-                        Floating(const FloatingIncrement(),
-                            slideType: FloatingSlideType.onRightAndBottom,
-                            right: 100,
-                            bottom: floatingManager.floatingSize() * 80,
-                            //禁止滑动到状态栏
-                            slideTopHeight: MediaQuery.of(context).padding.top,
-                            slideBottomHeight: 60))
-                    .open(context);
-              }),
-              ButtonWidget("跳转页面", () => _startCustomPage()),
+              ButtonWidget("跳转播放器", () =>  _startCustomPage()),
             ],
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _startCustomPage,
+        onPressed: _startOpen,
         tooltip: 'Increment',
-        child: const Text("跳"),
+        child: const Text("打开"),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  void _startCustomPage() {
+    floatingOne.hideFloating();
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+      return const CustomPage();
+    })).then((value) {
+      floatingOne.showFloating();
+    });
   }
 
   @override
   void dispose() {
     super.dispose();
-    floatingTwo.close();
+    floatingOne.close();
   }
 }

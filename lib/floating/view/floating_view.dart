@@ -492,15 +492,17 @@ class _FloatingViewState extends State<FloatingView>
 
   _notifyMove(double x, double y) {
     widget._log.log("移动 X:$x Y:$y");
+    var type = x > MediaQuery.of(context).size.width / 2 ? 1 : 0;
     for (var element in widget._listener) {
-      element.moveListener?.call(Point(x, y));
+      element.moveListener?.call(Point(x, y), type);
     }
   }
 
   _notifyMoveEnd(double x, double y) {
     widget._log.log("移动结束 X:$x Y:$y");
+    var type = x > MediaQuery.of(context).size.width / 2 ? 1 : 0;
     for (var element in widget._listener) {
-      element.moveEndListener?.call(Point(x, y));
+      element.moveEndListener?.call(Point(x, y), type);
     }
   }
 

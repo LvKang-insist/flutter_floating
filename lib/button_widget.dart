@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 /// @time：2021/05/11 11:19
 /// @des：
 ///
-class ButtonWidget extends StatelessWidget {
+class ButtonWidget extends StatefulWidget {
   final Function callback;
   final EdgeInsets? margin;
   final String text;
@@ -23,22 +23,34 @@ class ButtonWidget extends StatelessWidget {
       : super(key: key);
 
   @override
+  State<ButtonWidget> createState() => _ButtonWidgetState();
+}
+
+class _ButtonWidgetState extends State<ButtonWidget>  with TickerProviderStateMixin {
+  /// 动画控制器，设置动画持续时间为5秒，可重复播放
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 3),
+  )..repeat(reverse: true);
+
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      margin: margin ?? const EdgeInsets.all(16),
-      height: height ?? 44,
+      width: double.infinity,
+      height: 44,
       child: InkWell(
         child: Container(
-          child: Text(text,
+          child: Text(widget.text,
               style: TextStyle(
-                  color: Colors.white, fontSize: 16, fontWeight: fontWeight)),
+                  color: Colors.white, fontSize: 16, fontWeight:widget. fontWeight)),
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4), color: background),
+              borderRadius: BorderRadius.circular(4), color: widget.background),
           width: double.infinity,
           alignment: Alignment.center,
           height: 44,
         ),
-        onTap: () => callback(),
+        onTap: () => widget.callback(),
       ),
     );
   }
