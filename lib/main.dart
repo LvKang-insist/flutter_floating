@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_floating/floating/floating_demo.dart';
-import 'package:flutter_floating/floating_icon.dart';
-import 'package:flutter_floating/floating_scroll.dart';
+import 'package:flutter_floating/page.dart';
 import 'button_widget.dart';
-import 'floating/assist/floating_slide_type.dart';
-import 'floating/assist/slide_stop_type.dart';
-import 'floating/floating.dart';
-import 'floating/listener/event_listener.dart';
-import 'floating/manager/floating_manager.dart';
-import 'floating_increment.dart';
-import 'page.dart';
+
+//悬浮窗 import
+import 'package:flutter_floating/import_floating.dart';
 
 void main() => runApp(const MyApp());
 
@@ -51,6 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _startOpen() {
     floatingManager.closeAllFloating();
     var top =MediaQuery.of(context).padding.top;
+    //通过floatingManager创建悬浮窗，
     floatingOne = floatingManager.createFloating(
         "1",
         Floating(Demo(),
@@ -62,6 +57,28 @@ class _MyHomePageState extends State<MyHomePage> {
             slideTopHeight: top,
             bottom: 100));
     floatingOne.open(context);
+
+    //监听 api
+    var oneListener = FloatingEventListener()
+      ..openListener = () {
+        print('显示1');
+      }
+      ..closeListener = () {
+        print('关闭1');
+      }
+      ..downListener = (p) {
+        print('按下1');
+      }
+      ..upListener = (p) {
+        print('抬起1');
+      }
+      ..moveListener = (x, y) {
+        print('移动 $x  $y  1');
+      }
+      ..moveEndListener = (x, y) {
+        print('移动结束 $x  $y  1');
+      };
+    floatingOne.addFloatingListener(oneListener);
   }
 
   @override

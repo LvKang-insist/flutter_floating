@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_floating/floating/manager/floating_manager.dart';
 
-/// @name：page
-/// @package：
-/// @author：345 QQ:1831712732
-/// @time：2022/02/16 22:27
-/// @des：
 
+///演示播放器页面
 class CustomPage extends StatefulWidget {
   const CustomPage({Key? key}) : super(key: key);
 
@@ -21,8 +17,6 @@ class _CustomPageState extends State<CustomPage> {
   void initState() {
     super.initState();
   }
-
-  // var s = Get.put(AwesomeController());
 
   @override
   Widget build(BuildContext context) {

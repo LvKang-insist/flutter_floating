@@ -27,12 +27,6 @@ class ButtonWidget extends StatefulWidget {
 }
 
 class _ButtonWidgetState extends State<ButtonWidget>  with TickerProviderStateMixin {
-  /// 动画控制器，设置动画持续时间为5秒，可重复播放
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 3),
-  )..repeat(reverse: true);
-
 
   @override
   Widget build(BuildContext context) {

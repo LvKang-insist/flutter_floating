@@ -336,7 +336,7 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   _scrollX(double left) {
-    if (left > 0 && _left != left) {
+    if (_left != left) {
       var control = widget._scrollPositionControl;
       _scrollController.dispose();
       _scrollController = AnimationController(
@@ -346,7 +346,7 @@ class _FloatingViewState extends State<FloatingView>
         _left = anim.value.toDouble();
         setState(() {
           _saveCacheData(_left, _top);
-          _notifyMove(_left, _top);
+          // _notifyMove(_left, _top);
         });
       });
       _scrollController.forward();
@@ -364,7 +364,7 @@ class _FloatingViewState extends State<FloatingView>
         _top = anim.value.toDouble();
         setState(() {
           _saveCacheData(_left, _top);
-          _notifyMove(_left, _top);
+          // _notifyMove(_left, _top);
         });
       });
       _scrollController.forward();

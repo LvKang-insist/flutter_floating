@@ -13,7 +13,7 @@ class AnimationHelper {
     /// 从左边到中间
     return DecorationTween(
       begin: BoxDecoration(
-        color: Colors.grey,
+        color: const Color(0xFFC6D4D4),
         border: Border.all(style: BorderStyle.none),
         borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(0),
@@ -22,7 +22,7 @@ class AnimationHelper {
             bottomRight: Radius.circular(100)),
       ),
       end: BoxDecoration(
-        color: Colors.grey,
+        color: const Color(0xFFC6D4D4),
         border: Border.all(style: BorderStyle.none),
         borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(100),
@@ -38,7 +38,7 @@ class AnimationHelper {
     /// 在两种不同的装饰属性中变换，从圆形变成方形，红色变成白色背景，无阴影变成有阴影
     return DecorationTween(
       begin: BoxDecoration(
-        color: Colors.grey,
+        color: const Color(0xFFC6D4D4),
         border: Border.all(style: BorderStyle.none),
         borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(100),
@@ -47,7 +47,7 @@ class AnimationHelper {
             bottomRight: Radius.circular(0)),
       ),
       end: BoxDecoration(
-        color: Colors.grey,
+        color: const Color(0xFFC6D4D4),
         border: Border.all(style: BorderStyle.none),
         borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(100),
@@ -63,7 +63,7 @@ class AnimationHelper {
     /// 在两种不同的装饰属性中变换，从圆形变成方形，红色变成白色背景，无阴影变成有阴影
     return DecorationTween(
       begin: BoxDecoration(
-        color: Colors.grey,
+        color: const Color(0xFFC6D4D4),
         border: Border.all(style: BorderStyle.none),
         borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(100),
@@ -72,7 +72,7 @@ class AnimationHelper {
             bottomRight: Radius.circular(100)),
       ),
       end: BoxDecoration(
-        color: Colors.grey,
+        color: const Color(0xFFC6D4D4),
         border: Border.all(style: BorderStyle.none),
         borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(0),
@@ -88,7 +88,7 @@ class AnimationHelper {
     /// 在两种不同的装饰属性中变换，从圆形变成方形，红色变成白色背景，无阴影变成有阴影
     return DecorationTween(
       begin: BoxDecoration(
-        color: Colors.grey,
+        color: const Color(0xFFC6D4D4),
         border: Border.all(style: BorderStyle.none),
         borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(100),
@@ -97,7 +97,7 @@ class AnimationHelper {
             bottomRight: Radius.circular(100)),
       ),
       end: BoxDecoration(
-        color: Colors.grey,
+        color: const Color(0xFFC6D4D4),
         border: Border.all(style: BorderStyle.none),
         borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(100),

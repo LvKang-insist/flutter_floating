@@ -6,12 +6,7 @@ import 'package:flutter_floating/floating/assist/Point.dart';
 import 'package:flutter_floating/floating/listener/event_listener.dart';
 import 'package:flutter_floating/floating/manager/floating_manager.dart';
 
-/// @name：floating_icon
-/// @package：
-/// @author：345 QQ:1831712732
-/// @time：2022/06/02 17:50
-/// @des：
-
+///悬浮窗内部动画，非必要无需修改
 class MusicFloat extends StatefulWidget {
   final String floatingKey;
 
@@ -74,7 +69,7 @@ class _MusicFloatState extends State<MusicFloat> with TickerProviderStateMixin {
         widget.childWidth +
         widget.space +
         widget.closeWidth +
-        widget.space * 3;
+        widget.space * 2;
     var floating = floatingManager.getFloating(widget.floatingKey);
     var listener = FloatingEventListener();
     floating.addFloatingListener(listener);
@@ -238,10 +233,12 @@ class _MusicFloatState extends State<MusicFloat> with TickerProviderStateMixin {
           ),
           if (stateType != 0 && stateType != 1)
             Positioned(
-                child: SizedBox(
-                    child: widget.close,
-                    width: widget.closeWidth,
-                    height: widget.closeHeight),
+                child: UnconstrainedBox(
+                  child: SizedBox(
+                      child: widget.close,
+                      width: widget.closeWidth,
+                      height: widget.closeHeight),
+                ),
                 left: currentType == 1
                     ? widget.childWidth + widget.space * 2
                     : null,
