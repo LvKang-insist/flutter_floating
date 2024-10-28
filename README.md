@@ -214,5 +214,4 @@ floatingOne.addFloatingListener(oneListener);
 
 ### 最后
 
-如果您在使用过程中有任何问题可直接发送邮件`lv345_y@163.com` 或者直接提 `Issues`,也可以直接加入群聊:
-![](https://raw.githubusercontent.com/LvKang-insist/PicGo/main/img/202304141420430.jpeg)
+如果您在使用过程中有任何问题可直接发送邮件`lv345_y@163.com` 或者直接提 `Issues`,也可以直接加我wx：lv__345
