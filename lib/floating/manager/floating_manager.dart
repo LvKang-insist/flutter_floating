@@ -42,6 +42,11 @@ class FloatingManager {
     return _floatingCache[key]!;
   }
 
+  ///查询 [key] 对应的 [Floating] 是否存在
+  bool containsFloating(Object key) {
+    return _floatingCache.containsKey(key);
+  }
+
   ///关闭 [key] 对应的 [Floating]
   closeFloating(Object key) {
     var floating = _floatingCache[key];
