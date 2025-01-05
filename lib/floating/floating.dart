@@ -39,20 +39,20 @@ class Floating {
   bool _isShowing = false;
 
   ///[child]需要悬浮的 widget
-  ///[slideType]，可参考[FloatingSlideType]
+  ///[slideType]，悬浮窗坐标的起始点位置，可参考[FloatingSlideType]
   ///
-  ///[top],[left],[left],[bottom],[point] 对应 [slideType]，
+  ///[top],[left],[left],[bottom],[point] 对应 [slideType]，设置与起始点的距离
   ///例如设置[slideType]为[FloatingSlideType.onRightAndBottom]，则需要传入[bottom]和[right]
   ///设置 [slideType]为 [FloatingSlideType.onPoint] 则需要传入 [point]
   ///
-  ///[isPosCache]启用之后当调用之后 [Floating.close] 重新调用 [Floating.open] 后会保持之前的位置
-  ///[isSnapToEdge]是否自动吸附边缘，默认为 true ，请注意，移动默认是有透明动画的，如需要关闭透明度动画，
-  ///请修改 [moveOpacity]为 1
-  ///[isStartScroll] 是否启动悬浮窗滑动，默认为 true，false 表示无法滑动悬浮窗
-  ///[slideTopHeight] 滑动边界控制，可滑动到顶部的距离
-  ///[slideBottomHeight] 滑动边界控制，可滑动到底部的距离
-  ///[snapToEdgeSpace] 边缘吸附的距离
-  ///[slideStopType] 移动后回弹停靠的位置
+  ///[isPosCache]是否在调用 [Floating.open] 时，保持上一次 [Floating.close] 前的位置
+  ///[isSnapToEdge]是否自动吸附左右边缘，默认为 true
+  ///请注意，移动默认是有透明动画的，如需要关闭透明度动画，请修改 [moveOpacity]为 1
+  ///[isStartScroll] 是否允许拖动悬浮窗，默认为 true
+  ///[slideTopHeight] 拖动范围限制，与顶部的最小距离（可设为负数）
+  ///[slideBottomHeight] 拖动范围限制，与底部的最小距离（可设为负数）
+  ///[snapToEdgeSpace] 吸附后回弹至与边缘的距离，不开启吸附则用于范围限制（可设为负数）
+  ///[slideStopType] 拖动后吸附在哪一侧
   Floating(
     Widget child, {
     FloatingSlideType slideType = FloatingSlideType.onRightAndBottom,

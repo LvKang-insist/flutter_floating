@@ -83,7 +83,7 @@ class FloatingPlay extends StatelessWidget {
                   color: Colors.purple,
                 ),
               );
-            }),
+            }, stream: null,),
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {},
@@ -110,7 +110,7 @@ class FloatingPlay extends StatelessWidget {
             )
           ],
         );
-      }),
+      }, stream: null,),
     );
   }
 }
