@@ -2,15 +2,15 @@
 /// @package：
 /// @author：345 QQ:1831712732
 /// @time：2023/03/30 10:25
-/// @des：移动后回弹停靠的位置
+/// @des：拖动后吸附在哪一侧
 
 enum SlideStopType {
-  ///停靠在左边
+  ///吸附在左侧
   slideStopLeftType,
 
-  ///停靠在右边
+  ///吸附在右侧
   slideStopRightType,
 
-  ///自动选择
+  ///吸附在更近的一侧
   slideStopAutoType,
 }

@@ -10,19 +10,24 @@ import 'floating_slide_type.dart';
 
 class FloatingData {
   double? left;
-
   double? top;
-
   double? right;
-
   double? bottom;
 
   double snapToEdgeSpace = 0;
-
   Point<double>? point;
 
   FloatingSlideType slideType;
+  bool dynamicSlideType = false;
 
-  FloatingData(this.slideType,
-      {this.left, this.top, this.right, this.bottom,this.point, this.snapToEdgeSpace = 0});
+  FloatingData(
+    this.slideType, {
+    this.left,
+    this.top,
+    this.right,
+    this.bottom,
+    this.point,
+    this.snapToEdgeSpace = 0,
+    this.dynamicSlideType = false,
+  });
 }
