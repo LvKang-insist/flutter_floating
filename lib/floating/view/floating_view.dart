@@ -87,6 +87,7 @@ class _FloatingViewState extends State<FloatingView>
   // 顶部边距与剩余高度之比
   /// _top / (_parentHeight - slideTopHeight - slideBottomHeight - heightInRange)
   double? _topToRemainHeightRatio;
+
   // 左侧边距与剩余宽度之比
   /// _left / (_parentWidth - snapToEdgeSpace * 2 - widthInRange)
   double? _leftToRemainWidthRatio;
@@ -451,9 +452,11 @@ class _FloatingViewState extends State<FloatingView>
 
   // 悬浮窗尺寸变化时，根据起始点重新计算坐标
   setSlide() {
+    // 计算可用高度和宽度
     double availableHeight =
         _parentHeight - widget.slideTopHeight - widget.slideBottomHeight;
     double availableWidth = _parentWidth - _floatingData.snapToEdgeSpace * 2;
+    // 计算剩余高度和宽度
     double remainHeight = availableHeight - _height;
     double remainWidth = availableWidth - _width;
     // 无法完全显示：从起始点角落边缘开始显示
@@ -613,17 +616,23 @@ class _FloatingViewState extends State<FloatingView>
       }
     }
 
+    // 可用高度，减去顶部和底部的预留高度
     double availableHeight =
         _parentHeight - widget.slideTopHeight - widget.slideBottomHeight;
     if (availableHeight <= 0) {
+      //可用高度小于等于0时，设置在初始位置
       setBySlide();
       return;
     }
+    // 悬浮窗可用高度范围内的最小高度
     double heightInRange = min(availableHeight, _height);
+    // 计算剩余高度
     double remainHeight = availableHeight - heightInRange;
     if (remainHeight <= 0) {
+      //剩余高度小于等于0时，设置在初始位置
       setBySlide();
     } else {
+      // 根据剩余高度和距离顶部的高度比,计算新的顶部距离
       _top = _topToRemainHeightRatio! * remainHeight;
     }
   }
@@ -681,19 +690,25 @@ class _FloatingViewState extends State<FloatingView>
           return 1;
       }
     }
-
+    // 计算可用高度，减去顶部和底部的预留高度
     double availableHeight =
         _parentHeight - widget.slideTopHeight - widget.slideBottomHeight;
     if (availableHeight <= 0) {
+      //可用高度小于等于0时，设置比例为初始值
       _topToRemainHeightRatio ??= initWhenNoRemainHeight();
       print("topToRemainHeightRatio*: $_topToRemainHeightRatio");
       return;
     }
+    // 计算悬浮窗在可用高度范围内的高度
     double heightInRange = min(availableHeight - _top, _height);
+    // 根据外部高度和悬浮窗高度计算剩余高度
     double remainHeight = _parentHeight - heightInRange;
+    print("topToRemainHeightRatio: $_height $heightInRange  $remainHeight");
     if (remainHeight <= 0) {
+      //剩余高度小于等于0时，设置比例为初始值
       _topToRemainHeightRatio ??= initWhenNoRemainHeight();
     } else {
+      //计算顶部距离与剩余高度之比
       _topToRemainHeightRatio = _top / remainHeight;
     }
     print("topToRemainHeightRatio: $_topToRemainHeightRatio");
@@ -711,18 +726,23 @@ class _FloatingViewState extends State<FloatingView>
           return 1;
       }
     }
-
+    // 计算可用宽度，减去左右两侧的预留宽度
     double availableWidth = _parentWidth - _floatingData.snapToEdgeSpace * 2;
     if (availableWidth <= 0) {
+      //可用宽度小于等于0时，设置比例为初始值
       _leftToRemainWidthRatio ??= initWhenNoRemainWidth();
       print("leftToRemainWidthRatio*: $_leftToRemainWidthRatio");
       return;
     }
+    // 计算悬浮窗在可用宽度范围内的宽度
     double widthInRange = min(availableWidth - _left, _width);
+    // 根据外部宽度和悬浮窗宽度计算剩余宽度
     double remainWidth = _parentWidth - widthInRange;
     if (remainWidth <= 0) {
+      //剩余宽度小于等于0时，设置比例为初始值
       _leftToRemainWidthRatio ??= initWhenNoRemainWidth();
     } else {
+      //计算左侧距离与剩余宽度之比
       _leftToRemainWidthRatio = _left / remainWidth;
     }
     print("leftToRemainWidthRatio: $_leftToRemainWidthRatio");
