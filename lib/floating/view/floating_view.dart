@@ -31,6 +31,7 @@ class FloatingView extends StatefulWidget {
   final double moveOpacity; // 悬浮组件透明度
   final SlideStopType slideStopType;
   final CommonControl _commonControl;
+  final int edgeSpeed; //吸附边缘速度
 
   const FloatingView(
       this.child,
@@ -45,6 +46,7 @@ class FloatingView extends StatefulWidget {
       this.slideTopHeight = 0,
       this.slideBottomHeight = 0,
       this.moveOpacity = 0.3,
+      this.edgeSpeed = 0,
       this.slideStopType = SlideStopType.slideStopAutoType})
       : super(key: key);
 
@@ -66,9 +68,8 @@ class _FloatingViewState extends State<FloatingView>
 
   final double _defaultHeight = 100; //默认高度
 
-  double _width = 0; //悬浮窗宽度
-
-  double _height = 0; //悬浮窗高度
+  double _fWidth = 0; //悬浮窗宽度
+  double _fHeight = 0; //悬浮窗高度
 
   double _parentWidth = 0; //记录屏幕或者父组件宽度
   double _parentHeight = 0; //记录屏幕或者父组件高度
@@ -100,11 +101,9 @@ class _FloatingViewState extends State<FloatingView>
 
   late AnimationController _slideController; //动画控制器
   late Animation<double> _slideAnimation; //动画
-
   late AnimationController _scrollController; //动画控制器
 
   bool isHide = false;
-
   bool _isStartScroll = true; //是否启动悬浮窗滑动
 
   @override
@@ -216,23 +215,21 @@ class _FloatingViewState extends State<FloatingView>
         _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
     var w = renderBox?.size.width ?? _defaultWidth;
     var h = renderBox?.size.height ?? _defaultHeight;
-    print("isFloatingChangeSize w:$w h:$h _width:$_width _height:$_height");
-    return w != _width || h != _height;
+    return w != _fWidth || h != _fHeight;
   }
 
   _resetFloatingSize() {
     renderBox ??=
         _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
-    _width = renderBox?.size.width ?? _defaultWidth;
-    _height = renderBox?.size.height ?? _defaultHeight;
-    print("resetFloatingSize _width:$_width _height:$_height");
+    _fWidth = renderBox?.size.width ?? _defaultWidth;
+    _fHeight = renderBox?.size.height ?? _defaultHeight;
   }
 
   ///边界判断
   _changePosition() {
     var type = _floatingData.slideType;
     //定义一个左边界；
-    List<double> leftBorder = [0, _parentWidth - _width];
+    List<double> leftBorder = [0, _parentWidth - _fWidth];
     // 开启吸附时，_floatingData.snapToEdgeSpace为负值则扩展边界，为正由回弹处理
     // 未开启吸附时，_floatingData.snapToEdgeSpace直接作为边界
     if (_floatingData.snapToEdgeSpace < 0 || !widget.isSnapToEdge) {
@@ -252,7 +249,7 @@ class _FloatingViewState extends State<FloatingView>
     //定义一个上边界
     List<double> topBorder = [
       widget.slideTopHeight,
-      _parentHeight - _height - widget.slideBottomHeight
+      _parentHeight - _fHeight - widget.slideBottomHeight
     ];
     // 处理无法移动的情况
     if (topBorder[1] < topBorder[0]) {
@@ -281,20 +278,35 @@ class _FloatingViewState extends State<FloatingView>
     double toPositionX = 0;
     double needMoveLength = 0;
 
-    double centerX = _left + _width / 2.0; //中心点位置
-    if (centerX < _parentWidth / 2 &&
-        widget.slideStopType != SlideStopType.slideStopRightType) {
+    void _setPositionToLeft() {
       needMoveLength = _left; //靠左边的距离
       toPositionX = 0 + _floatingData.snapToEdgeSpace; //回到左边缘距离
-    } else {
-      needMoveLength = (_parentWidth - _left - _width); //靠右边的距离
+    }
+
+    void _setPositionToRight() {
+      needMoveLength = (_parentWidth - _left - _fWidth); //靠右边的距离
       toPositionX =
-          _parentWidth - _width - _floatingData.snapToEdgeSpace; //回到右边缘距离
+          _parentWidth - _fWidth - _floatingData.snapToEdgeSpace; //回到右边缘距离
+    }
+
+    switch (widget.slideStopType) {
+      case SlideStopType.slideStopLeftType:
+        _setPositionToLeft();
+        break;
+      case SlideStopType.slideStopRightType:
+        _setPositionToRight();
+        break;
+      case SlideStopType.slideStopAutoType:
+        double centerX = _left + _fWidth / 2.0; //中心点位置
+        (centerX < _parentWidth / 2)
+            ? _setPositionToLeft()
+            : _setPositionToRight();
+        break;
     }
 
     //根据滑动距离计算滑动时间
     double parent = (needMoveLength / (_parentWidth / 2.0));
-    int time = (500 * parent).ceil();
+    int time = (widget.edgeSpeed * parent).ceil();
 
     //执行动画
     _animationSlide(_left, toPositionX, time, () {
@@ -334,17 +346,17 @@ class _FloatingViewState extends State<FloatingView>
     var control = widget._scrollPositionControl;
     control.setScrollTop((top) => _scrollY(top));
     control.setScrollLeft((left) => _scrollX(left));
-    control.setScrollRight((right) => _scrollX(_parentWidth - right - _width));
+    control.setScrollRight((right) => _scrollX(_parentWidth - right - _fWidth));
     control.setScrollBottom(
-        (bottom) => _scrollY(_parentHeight - bottom - _height));
+        (bottom) => _scrollY(_parentHeight - bottom - _fHeight));
 
     control.setScrollTopLeft((top, left) => _scrollXY(left, top));
     control.setScrollTopRight(
-        (top, right) => _scrollXY(_parentWidth - right - _width, top));
+        (top, right) => _scrollXY(_parentWidth - right - _fWidth, top));
     control.setScrollBottomLeft(
-        (bottom, left) => _scrollXY(left, _parentHeight - bottom - _height));
+        (bottom, left) => _scrollXY(left, _parentHeight - bottom - _fHeight));
     control.setScrollBottomRight((bottom, right) => _scrollXY(
-        _parentWidth - right - _width, _parentHeight - bottom - _height));
+        _parentWidth - right - _fWidth, _parentHeight - bottom - _fHeight));
   }
 
   _scrollXY(double x, double y) {
@@ -436,8 +448,6 @@ class _FloatingViewState extends State<FloatingView>
     if (_parentWidth == 0 || _parentHeight == 0) return;
     var width = MediaQuery.of(context).size.width;
     var height = MediaQuery.of(context).size.height;
-    print(
-        "屏幕宽高改变，_parentWidth:$_parentWidth _parentHeight:$_parentHeight, width:$width height:$height");
     if (width != _parentWidth || height != _parentHeight) {
       _parentWidth = width;
       _parentHeight = height;
@@ -446,8 +456,6 @@ class _FloatingViewState extends State<FloatingView>
       });
       _saveCacheData(_left, _top);
     }
-    print(
-        "屏幕宽高改变结束，_top:$_top _left:$_left _parentWidth:$_parentWidth _parentHeight:$_parentHeight");
   }
 
   // 悬浮窗尺寸变化时，根据起始点重新计算坐标
@@ -457,23 +465,23 @@ class _FloatingViewState extends State<FloatingView>
         _parentHeight - widget.slideTopHeight - widget.slideBottomHeight;
     double availableWidth = _parentWidth - _floatingData.snapToEdgeSpace * 2;
     // 计算剩余高度和宽度
-    double remainHeight = availableHeight - _height;
-    double remainWidth = availableWidth - _width;
+    double remainHeight = availableHeight - _fHeight;
+    double remainWidth = availableWidth - _fWidth;
     // 无法完全显示：从起始点角落边缘开始显示
     // 可完全显示，但需要调整：从右下角边缘开始显示
     void _adjustBottom() {
-      double currentBottom = _parentHeight - _top - _height;
+      double currentBottom = _parentHeight - _top - _fHeight;
       // 需要向上调整才能完全显示
       if (currentBottom <= widget.slideBottomHeight) {
-        _top = _parentHeight - widget.slideBottomHeight - _height;
+        _top = _parentHeight - widget.slideBottomHeight - _fHeight;
       }
     }
 
     void _adjustRight() {
-      double currentRight = _parentWidth - _left - _width;
+      double currentRight = _parentWidth - _left - _fWidth;
       // 需要向左调整才能完全显示
       if (currentRight <= _floatingData.snapToEdgeSpace) {
-        _left = _parentWidth - _floatingData.snapToEdgeSpace - _width;
+        _left = _parentWidth - _floatingData.snapToEdgeSpace - _fWidth;
       }
     }
 
@@ -487,7 +495,7 @@ class _FloatingViewState extends State<FloatingView>
 
     void _bottomSet() {
       if (remainHeight <= 0) {
-        _top = _parentHeight - widget.slideBottomHeight - _height;
+        _top = _parentHeight - widget.slideBottomHeight - _fHeight;
       } else {
         _adjustBottom();
       }
@@ -503,7 +511,7 @@ class _FloatingViewState extends State<FloatingView>
 
     void _rightSet() {
       if (remainWidth <= 0) {
-        _left = _parentWidth - _width - _floatingData.snapToEdgeSpace;
+        _left = _parentWidth - _fWidth - _floatingData.snapToEdgeSpace;
       } else {
         _adjustRight();
       }
@@ -543,13 +551,13 @@ class _FloatingViewState extends State<FloatingView>
     void _rightInit() {
       _left = _parentWidth -
           (_floatingData.right ?? _floatingData.snapToEdgeSpace) -
-          _width;
+          _fWidth;
     }
 
     void _bottomInit() {
       _top = _parentHeight -
           (_floatingData.bottom ?? widget.slideBottomHeight) -
-          _height;
+          _fHeight;
     }
 
     switch (_floatingData.slideType) {
@@ -610,7 +618,7 @@ class _FloatingViewState extends State<FloatingView>
     void setBySlide() {
       if (_floatingData.slideType == FloatingSlideType.onLeftAndBottom ||
           _floatingData.slideType == FloatingSlideType.onRightAndBottom) {
-        _top = _parentHeight - widget.slideBottomHeight - _height;
+        _top = _parentHeight - widget.slideBottomHeight - _fHeight;
       } else {
         _top = widget.slideTopHeight;
       }
@@ -625,7 +633,7 @@ class _FloatingViewState extends State<FloatingView>
       return;
     }
     // 悬浮窗可用高度范围内的最小高度
-    double heightInRange = min(availableHeight, _height);
+    double heightInRange = min(availableHeight, _fHeight);
     // 计算剩余高度
     double remainHeight = availableHeight - heightInRange;
     if (remainHeight <= 0) {
@@ -639,11 +647,23 @@ class _FloatingViewState extends State<FloatingView>
 
   // 处理吸附在左右两侧的情况
   _calcNewLeftWhenSnapToEdge() {
-    if ((_left + _width / 2) < _parentWidth / 2 &&
-        widget.slideStopType != SlideStopType.slideStopRightType) {
+    _slideLeft() {
       _left = _floatingData.snapToEdgeSpace;
-    } else {
-      _left = _parentWidth - _width - _floatingData.snapToEdgeSpace;
+    }
+    _slideRight() {
+      _left = _parentWidth - _fWidth - _floatingData.snapToEdgeSpace;
+    }
+    switch (widget.slideStopType) {
+      case SlideStopType.slideStopLeftType:
+        _slideLeft();
+        break;
+      case SlideStopType.slideStopRightType:
+        _slideRight();
+        break;
+      case SlideStopType.slideStopAutoType:
+        var centerX = _parentWidth / 2.0; //中心位置
+        ((_left + _fWidth / 2) < centerX) ? _slideLeft() : _slideRight();
+        break;
     }
   }
 
@@ -651,19 +671,20 @@ class _FloatingViewState extends State<FloatingView>
     void setBySlide() {
       if (_floatingData.slideType == FloatingSlideType.onRightAndBottom ||
           _floatingData.slideType == FloatingSlideType.onRightAndTop) {
-        _left = _parentWidth - _width - _floatingData.snapToEdgeSpace;
+        _left = _parentWidth - _fWidth - _floatingData.snapToEdgeSpace;
       } else {
         _left = _floatingData.snapToEdgeSpace;
       }
     }
 
+    //计算可用宽度，减去左右两侧的预留宽度
     double availableWidth = _parentWidth - _floatingData.snapToEdgeSpace * 2;
     if (availableWidth <= 0) {
       setBySlide();
       if (widget.isSnapToEdge) _calcNewLeftWhenSnapToEdge();
       return;
     }
-    double widthInRange = min(availableWidth, _width);
+    double widthInRange = min(availableWidth, _fWidth);
     double remainWidth = availableWidth - widthInRange;
     if (remainWidth <= 0) {
       setBySlide();
@@ -690,20 +711,19 @@ class _FloatingViewState extends State<FloatingView>
           return 1;
       }
     }
+
     // 计算可用高度，减去顶部和底部的预留高度
     double availableHeight =
         _parentHeight - widget.slideTopHeight - widget.slideBottomHeight;
     if (availableHeight <= 0) {
       //可用高度小于等于0时，设置比例为初始值
       _topToRemainHeightRatio ??= initWhenNoRemainHeight();
-      print("topToRemainHeightRatio*: $_topToRemainHeightRatio");
       return;
     }
     // 计算悬浮窗在可用高度范围内的高度
-    double heightInRange = min(availableHeight - _top, _height);
+    double heightInRange = min(availableHeight - _top, _fHeight);
     // 根据外部高度和悬浮窗高度计算剩余高度
     double remainHeight = _parentHeight - heightInRange;
-    print("topToRemainHeightRatio: $_height $heightInRange  $remainHeight");
     if (remainHeight <= 0) {
       //剩余高度小于等于0时，设置比例为初始值
       _topToRemainHeightRatio ??= initWhenNoRemainHeight();
@@ -711,7 +731,6 @@ class _FloatingViewState extends State<FloatingView>
       //计算顶部距离与剩余高度之比
       _topToRemainHeightRatio = _top / remainHeight;
     }
-    print("topToRemainHeightRatio: $_topToRemainHeightRatio");
   }
 
   _setLeftToRemainWidthRatio() {
@@ -726,16 +745,16 @@ class _FloatingViewState extends State<FloatingView>
           return 1;
       }
     }
+
     // 计算可用宽度，减去左右两侧的预留宽度
     double availableWidth = _parentWidth - _floatingData.snapToEdgeSpace * 2;
     if (availableWidth <= 0) {
       //可用宽度小于等于0时，设置比例为初始值
       _leftToRemainWidthRatio ??= initWhenNoRemainWidth();
-      print("leftToRemainWidthRatio*: $_leftToRemainWidthRatio");
       return;
     }
     // 计算悬浮窗在可用宽度范围内的宽度
-    double widthInRange = min(availableWidth - _left, _width);
+    double widthInRange = min(availableWidth - _left, _fWidth);
     // 根据外部宽度和悬浮窗宽度计算剩余宽度
     double remainWidth = _parentWidth - widthInRange;
     if (remainWidth <= 0) {
@@ -745,12 +764,9 @@ class _FloatingViewState extends State<FloatingView>
       //计算左侧距离与剩余宽度之比
       _leftToRemainWidthRatio = _left / remainWidth;
     }
-    print("leftToRemainWidthRatio: $_leftToRemainWidthRatio");
   }
 
   _setPositionToRemainRatio() {
-    print(
-        "设置边距占剩余尺寸比：_parentWidth:$_parentWidth _parentHeight:$_parentHeight _left:$_left _top:$_top _width:$_width _height:$_height");
     _setTopToRemainHeightRatio();
     _setLeftToRemainWidthRatio();
   }

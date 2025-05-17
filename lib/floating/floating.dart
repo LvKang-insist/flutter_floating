@@ -52,6 +52,7 @@ class Floating {
   ///[slideTopHeight] 拖动范围限制，与顶部的最小距离（可设为负数）
   ///[slideBottomHeight] 拖动范围限制，与底部的最小距离（可设为负数）
   ///[snapToEdgeSpace] 吸附后回弹至与边缘的距离，不开启吸附则用于范围限制（可设为负数）
+  ///[edgeSpeed] 吸附边缘的速度，默认 250，越大越快
   ///[slideStopType] 拖动后吸附在哪一侧
   Floating(
     Widget child, {
@@ -69,6 +70,7 @@ class Floating {
     double slideTopHeight = 0,
     double slideBottomHeight = 0,
     double snapToEdgeSpace = 0,
+    int edgeSpeed = 250,
     SlideStopType slideStopType = SlideStopType.slideStopAutoType,
   }) {
     _floatingData = FloatingData(slideType,
@@ -96,6 +98,7 @@ class Floating {
       slideTopHeight: slideTopHeight,
       slideBottomHeight: slideBottomHeight,
       slideStopType: slideStopType,
+      edgeSpeed: edgeSpeed,
     );
   }
 

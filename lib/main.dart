@@ -129,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ButtonWidget("隐藏右上角悬浮窗", () {
                 floatingTwo.hideFloating();
               }),
-              ButtonWidget("添加没有移动动画的悬浮窗", () {
+              ButtonWidget("添加没有透明度动画的悬浮窗", () {
                 floatingManager
                     .createFloating(
                         DateTime.now().millisecondsSinceEpoch,
@@ -149,8 +149,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         Floating(const FloatingIncrement(),
                             slideType: FloatingSlideType.onRightAndBottom,
                             right: 100,
+                            slideStopType: SlideStopType.slideStopLeftType,
                             bottom: floatingManager.floatingSize() * 80,
                             //禁止滑动到状态栏
+                            edgeSpeed: 100,
                             slideTopHeight: MediaQuery.of(context).padding.top,
                             slideBottomHeight: 60))
                     .open(context);
