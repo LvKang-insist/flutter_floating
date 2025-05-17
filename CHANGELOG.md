@@ -1,3 +1,9 @@
+### v1.1.1
+![修复当设置为吸附左边时，悬浮窗位置不正确的问题](https://github.com/LvKang-insist/flutter_floating/issues/37 )
+去掉屏幕宽高改变的日志
+增加滑动结束后吸附边缘时的速度 edgeSpeed
+
+
 ### v1.1.0
 修复悬浮窗外尺寸发生变化时悬浮窗位置未恢复的问题
 
