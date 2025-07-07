@@ -9,7 +9,7 @@ import 'package:flutter_floating/floating/assist/Point.dart';
 class CommonControl {
   Function(bool isHide)? _hideControl;
   Function(bool isScroll)? _startScroll;
-   Point<double> point =  Point(0, 0);
+  Point<double> point = Point(0, 0);
   Function(Point<double> point)? _floatingPoint;
   bool _initIsScroll = false;
 

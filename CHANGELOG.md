@@ -4,6 +4,9 @@
 增加滑动结束后吸附边缘时的速度 edgeSpeed
 
 
+### v1.1.2
+增加页面内悬浮窗的支持，[参考](https://github.com/LvKang-insist/flutter_floating/tree/master/lib/page/internal_floating_page.dart)
+
 ### v1.1.0
 修复悬浮窗外尺寸发生变化时悬浮窗位置未恢复的问题
 

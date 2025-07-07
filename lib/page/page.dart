@@ -54,35 +54,3 @@ class _CustomPageState extends State<CustomPage> {
     super.dispose();
   }
 }
-
-// class AwesomeController extends GetxController {
-//   final String title = 'My Awesome View';
-// }
-//
-//
-//
-// // 一定要记住传递你用来注册控制器的`Type`!
-// class AwesomeView extends GetView<AwesomeController> {
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return GestureDetector(
-//       onTap: () {
-//         floatingManager
-//             .createFloating(
-//                 "1",
-//                 Floating(const FloatingIncrement(),
-//                     slideType: FloatingSlideType.onLeftAndTop,
-//                     left: 0,
-//                     top: 150,
-//                     isShowLog: false,
-//                     slideBottomHeight: 100))
-//             .open(context);
-//       },
-//       child: Container(
-//         padding: EdgeInsets.all(20),
-//         child: Text(controller.title), // 只需调用 "controller.something"。
-//       ),
-//     );
-//   }
-// }

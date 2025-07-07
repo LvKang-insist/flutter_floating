@@ -4,7 +4,7 @@
 /// @time：2023/03/27 14:44
 /// @des：
 import 'package:flutter/material.dart';
-import 'package:flutter_floating/page.dart';
+import 'package:flutter_floating/page/page.dart';
 
 class FloatingPlay extends StatelessWidget {
   const FloatingPlay({Key? key}) : super(key: key);

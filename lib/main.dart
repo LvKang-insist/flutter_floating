@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_floating/floating_icon.dart';
-import 'package:flutter_floating/floating_scroll.dart';
+import 'package:flutter_floating/test_floating/floating_scroll.dart';
+import 'package:flutter_floating/page/internal_floating_page.dart';
 import 'button_widget.dart';
 import 'floating/assist/floating_slide_type.dart';
 import 'floating/assist/slide_stop_type.dart';
 import 'floating/floating.dart';
 import 'floating/listener/event_listener.dart';
 import 'floating/manager/floating_manager.dart';
-import 'floating_increment.dart';
-import 'page.dart';
+import 'test_floating/floating_increment.dart';
+import 'page/page.dart';
 
 void main() => runApp(const MyApp());
 
@@ -94,6 +95,12 @@ class _MyHomePageState extends State<MyHomePage> {
     }));
   }
 
+  void _startInternalFollowPage() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+      return const InternalFloatingPage();
+    }));
+  }
+
   var isOpen = false;
 
   @override
@@ -158,6 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     .open(context);
               }),
               ButtonWidget("跳转页面", () => _startCustomPage()),
+              ButtonWidget("页面内悬浮窗", () => _startInternalFollowPage()),
             ],
           ),
         ),

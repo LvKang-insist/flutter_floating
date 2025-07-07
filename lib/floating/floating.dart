@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_floating/floating/assist/Point.dart';
 import 'package:flutter_floating/floating/assist/slide_stop_type.dart';
+import 'package:flutter_floating/floating/base/floating_base.dart';
 import 'package:flutter_floating/floating/control/common_control.dart';
 import 'package:flutter_floating/floating/listener/event_listener.dart';
 import 'package:flutter_floating/floating/manager/scroll_position_manager.dart';
 import 'package:flutter_floating/floating/utils/floating_log.dart';
 import 'package:flutter_floating/floating/view/floating_view.dart';
-
 import 'assist/floating_data.dart';
 import 'assist/floating_slide_type.dart';
 import 'control/scroll_position_control.dart';
@@ -17,7 +17,7 @@ import 'control/scroll_position_control.dart';
 /// @time：2022/02/10 14:23
 /// @des：
 
-class Floating {
+class Floating implements FloatingBase {
   late OverlayEntry _overlayEntry;
 
   late FloatingView _floatingView;
@@ -157,16 +157,6 @@ class Floating {
     _log.logKey = key;
   }
 
-  /// 获取滑动管理
-  ScrollPositionManager getScrollManager() {
-    return _scrollPositionManager;
-  }
-
-  /// 获取悬浮位置[Size.width]表示距离left距离，[Size.height]表示top距离
-  Point getFloatingPoint() {
-    return _commonControl.getFloatingPoint();
-  }
-
   _notifyClose() {
     _log.log("关闭");
     for (var listener in _listener) {
@@ -194,4 +184,17 @@ class Floating {
       listener.showFloatingListener?.call();
     }
   }
+
+  ///获取悬浮窗
+  @override
+  Widget getFloating() => _floatingView;
+
+  /// 获取滑动管理
+  @override
+  ScrollPositionManager getScrollManager() =>_scrollPositionManager;
+
+  /// 获取悬浮窗位置
+  @override
+  Point<num> getFloatingPoint() => _commonControl.getFloatingPoint();
+
 }
