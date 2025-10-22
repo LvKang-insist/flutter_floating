@@ -33,15 +33,8 @@ class FloatingView extends StatefulWidget {
   final CommonControl _commonControl;
   final int edgeSpeed; //吸附边缘速度
 
-  const FloatingView(
-      this.child,
-      this.floatingData,
-      this.isPosCache,
-      this.isSnapToEdge,
-      this._listener,
-      this._scrollPositionControl,
-      this._commonControl,
-      this._log,
+  const FloatingView(this.child, this.floatingData, this.isPosCache, this.isSnapToEdge,
+      this._listener, this._scrollPositionControl, this._commonControl, this._log,
       {Key? key,
       this.slideTopHeight = 0,
       this.slideBottomHeight = 0,
@@ -54,8 +47,7 @@ class FloatingView extends StatefulWidget {
   _FloatingViewState createState() => _FloatingViewState();
 }
 
-class _FloatingViewState extends State<FloatingView>
-    with TickerProviderStateMixin {
+class _FloatingViewState extends State<FloatingView> with TickerProviderStateMixin {
   final _floatingGlobalKey = GlobalKey();
   RenderBox? renderBox;
 
@@ -110,21 +102,18 @@ class _FloatingViewState extends State<FloatingView>
   void initState() {
     super.initState();
     _floatingData = widget.floatingData;
-    widget._commonControl.setHideControlListener(
-        (isHide) => setState(() => this.isHide = isHide));
+    widget._commonControl.setHideControlListener((isHide) => setState(() => this.isHide = isHide));
     _isStartScroll = widget._commonControl.getInitIsScroll();
-    widget._commonControl
-        .setIsStartScrollListener((isScroll) => _isStartScroll = isScroll);
+    widget._commonControl.setIsStartScrollListener((isScroll) => _isStartScroll = isScroll);
     widget._commonControl.setFloatingPoint((Point<double> point) {
       point.x = _left;
       point.y = _top;
     });
+    widget._commonControl.setRefreshListener(() => refresh());
     _contentWidget = _content();
-    _slideController = AnimationController(
-        duration: const Duration(milliseconds: 0), vsync: this);
+    _slideController = AnimationController(duration: const Duration(milliseconds: 0), vsync: this);
     _slideAnimation = Tween(begin: 0.0, end: 0.0).animate(_slideController);
-    _scrollController = AnimationController(
-        duration: const Duration(milliseconds: 0), vsync: this);
+    _scrollController = AnimationController(duration: const Duration(milliseconds: 0), vsync: this);
     _setScrollControl();
     setState(() {
       _setParentHeightAndWidget();
@@ -192,8 +181,7 @@ class _FloatingViewState extends State<FloatingView>
         key: _floatingGlobalKey,
         child: NotificationListener(
             onNotification: (notification) {
-              if (notification is SizeChangedLayoutNotification &&
-                  _isFloatingChangeSize()) {
+              if (notification is SizeChangedLayoutNotification && _isFloatingChangeSize()) {
                 _setParentHeightAndWidget();
                 _resetFloatingSize();
                 setState(() {
@@ -211,16 +199,14 @@ class _FloatingViewState extends State<FloatingView>
 
   ///floating 宽高是否改变，true 表示改变
   bool _isFloatingChangeSize() {
-    renderBox ??=
-        _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
+    renderBox ??= _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
     var w = renderBox?.size.width ?? _defaultWidth;
     var h = renderBox?.size.height ?? _defaultHeight;
     return w != _fWidth || h != _fHeight;
   }
 
   _resetFloatingSize() {
-    renderBox ??=
-        _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
+    renderBox ??= _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
     _fWidth = renderBox?.size.width ?? _defaultWidth;
     _fHeight = renderBox?.size.height ?? _defaultHeight;
   }
@@ -238,8 +224,7 @@ class _FloatingViewState extends State<FloatingView>
     }
     // 处理无法移动的情况
     if (leftBorder[1] < leftBorder[0]) {
-      if (type == FloatingSlideType.onRightAndBottom ||
-          type == FloatingSlideType.onRightAndTop) {
+      if (type == FloatingSlideType.onRightAndBottom || type == FloatingSlideType.onRightAndTop) {
         leftBorder[0] = leftBorder[1];
       } else {
         leftBorder[1] = leftBorder[0];
@@ -253,8 +238,7 @@ class _FloatingViewState extends State<FloatingView>
     ];
     // 处理无法移动的情况
     if (topBorder[1] < topBorder[0]) {
-      if (type == FloatingSlideType.onRightAndBottom ||
-          type == FloatingSlideType.onLeftAndBottom) {
+      if (type == FloatingSlideType.onRightAndBottom || type == FloatingSlideType.onLeftAndBottom) {
         topBorder[0] = topBorder[1];
       } else {
         topBorder[1] = topBorder[0];
@@ -285,8 +269,7 @@ class _FloatingViewState extends State<FloatingView>
 
     void _setPositionToRight() {
       needMoveLength = (_parentWidth - _left - _fWidth); //靠右边的距离
-      toPositionX =
-          _parentWidth - _fWidth - _floatingData.snapToEdgeSpace; //回到右边缘距离
+      toPositionX = _parentWidth - _fWidth - _floatingData.snapToEdgeSpace; //回到右边缘距离
     }
 
     switch (widget.slideStopType) {
@@ -298,9 +281,7 @@ class _FloatingViewState extends State<FloatingView>
         break;
       case SlideStopType.slideStopAutoType:
         double centerX = _left + _fWidth / 2.0; //中心点位置
-        (centerX < _parentWidth / 2)
-            ? _setPositionToLeft()
-            : _setPositionToRight();
+        (centerX < _parentWidth / 2) ? _setPositionToLeft() : _setPositionToRight();
         break;
     }
 
@@ -319,13 +300,10 @@ class _FloatingViewState extends State<FloatingView>
     });
   }
 
-  _animationSlide(
-      double left, double toPositionX, int time, Function completed) {
+  _animationSlide(double left, double toPositionX, int time, Function completed) {
     _slideController.dispose();
-    _slideController = AnimationController(
-        duration: Duration(milliseconds: time), vsync: this);
-    _slideAnimation =
-        Tween(begin: left, end: toPositionX * 1.0).animate(_slideController);
+    _slideController = AnimationController(duration: Duration(milliseconds: time), vsync: this);
+    _slideAnimation = Tween(begin: left, end: toPositionX * 1.0).animate(_slideController);
     //回弹动画
     _slideAnimation.addListener(() {
       _left = _slideAnimation.value.toDouble();
@@ -342,29 +320,38 @@ class _FloatingViewState extends State<FloatingView>
     _slideController.forward();
   }
 
+  refresh() {
+    setState((){
+      _changePosition();
+      _setParentHeightAndWidget();
+      _resetFloatingSize();
+      _initPosition();
+    });
+    //停止后靠边操作
+    // _animateMovePosition();
+  }
+
   _setScrollControl() {
     var control = widget._scrollPositionControl;
     control.setScrollTop((top) => _scrollY(top));
     control.setScrollLeft((left) => _scrollX(left));
     control.setScrollRight((right) => _scrollX(_parentWidth - right - _fWidth));
-    control.setScrollBottom(
-        (bottom) => _scrollY(_parentHeight - bottom - _fHeight));
+    control.setScrollBottom((bottom) => _scrollY(_parentHeight - bottom - _fHeight));
 
     control.setScrollTopLeft((top, left) => _scrollXY(left, top));
-    control.setScrollTopRight(
-        (top, right) => _scrollXY(_parentWidth - right - _fWidth, top));
-    control.setScrollBottomLeft(
-        (bottom, left) => _scrollXY(left, _parentHeight - bottom - _fHeight));
-    control.setScrollBottomRight((bottom, right) => _scrollXY(
-        _parentWidth - right - _fWidth, _parentHeight - bottom - _fHeight));
+    control.setScrollTopRight((top, right) => _scrollXY(_parentWidth - right - _fWidth, top));
+    control
+        .setScrollBottomLeft((bottom, left) => _scrollXY(left, _parentHeight - bottom - _fHeight));
+    control.setScrollBottomRight((bottom, right) =>
+        _scrollXY(_parentWidth - right - _fWidth, _parentHeight - bottom - _fHeight));
   }
 
   _scrollXY(double x, double y) {
     if ((x > 0 || y > 0) && (_left != x || _top != y)) {
       var control = widget._scrollPositionControl;
       _scrollController.dispose();
-      _scrollController = AnimationController(
-          duration: Duration(milliseconds: control.timeMillis), vsync: this);
+      _scrollController =
+          AnimationController(duration: Duration(milliseconds: control.timeMillis), vsync: this);
       var t = Tween(begin: _top, end: y).animate(_scrollController);
       var l = Tween(begin: _left, end: x).animate(_scrollController);
       _scrollController.addListener(() {
@@ -383,8 +370,8 @@ class _FloatingViewState extends State<FloatingView>
     if (left > 0 && _left != left) {
       var control = widget._scrollPositionControl;
       _scrollController.dispose();
-      _scrollController = AnimationController(
-          duration: Duration(milliseconds: control.timeMillis), vsync: this);
+      _scrollController =
+          AnimationController(duration: Duration(milliseconds: control.timeMillis), vsync: this);
       var anim = Tween(begin: _left, end: left).animate(_scrollController);
       anim.addListener(() {
         _left = anim.value.toDouble();
@@ -401,8 +388,8 @@ class _FloatingViewState extends State<FloatingView>
     if (top > 0 && _top != top) {
       var control = widget._scrollPositionControl;
       _scrollController.dispose();
-      _scrollController = AnimationController(
-          duration: Duration(milliseconds: control.timeMillis), vsync: this);
+      _scrollController =
+          AnimationController(duration: Duration(milliseconds: control.timeMillis), vsync: this);
       var anim = Tween(begin: _top, end: top).animate(_scrollController);
       anim.addListener(() {
         _top = anim.value.toDouble();
@@ -461,8 +448,7 @@ class _FloatingViewState extends State<FloatingView>
   // 悬浮窗尺寸变化时，根据起始点重新计算坐标
   setSlide() {
     // 计算可用高度和宽度
-    double availableHeight =
-        _parentHeight - widget.slideTopHeight - widget.slideBottomHeight;
+    double availableHeight = _parentHeight - widget.slideTopHeight - widget.slideBottomHeight;
     double availableWidth = _parentWidth - _floatingData.snapToEdgeSpace * 2;
     // 计算剩余高度和宽度
     double remainHeight = availableHeight - _fHeight;
@@ -549,15 +535,11 @@ class _FloatingViewState extends State<FloatingView>
     }
 
     void _rightInit() {
-      _left = _parentWidth -
-          (_floatingData.right ?? _floatingData.snapToEdgeSpace) -
-          _fWidth;
+      _left = _parentWidth - (_floatingData.right ?? _floatingData.snapToEdgeSpace) - _fWidth;
     }
 
     void _bottomInit() {
-      _top = _parentHeight -
-          (_floatingData.bottom ?? widget.slideBottomHeight) -
-          _fHeight;
+      _top = _parentHeight - (_floatingData.bottom ?? widget.slideBottomHeight) - _fHeight;
     }
 
     switch (_floatingData.slideType) {
@@ -625,8 +607,7 @@ class _FloatingViewState extends State<FloatingView>
     }
 
     // 可用高度，减去顶部和底部的预留高度
-    double availableHeight =
-        _parentHeight - widget.slideTopHeight - widget.slideBottomHeight;
+    double availableHeight = _parentHeight - widget.slideTopHeight - widget.slideBottomHeight;
     if (availableHeight <= 0) {
       //可用高度小于等于0时，设置在初始位置
       setBySlide();
@@ -650,9 +631,11 @@ class _FloatingViewState extends State<FloatingView>
     _slideLeft() {
       _left = _floatingData.snapToEdgeSpace;
     }
+
     _slideRight() {
       _left = _parentWidth - _fWidth - _floatingData.snapToEdgeSpace;
     }
+
     switch (widget.slideStopType) {
       case SlideStopType.slideStopLeftType:
         _slideLeft();
@@ -713,8 +696,7 @@ class _FloatingViewState extends State<FloatingView>
     }
 
     // 计算可用高度，减去顶部和底部的预留高度
-    double availableHeight =
-        _parentHeight - widget.slideTopHeight - widget.slideBottomHeight;
+    double availableHeight = _parentHeight - widget.slideTopHeight - widget.slideBottomHeight;
     if (availableHeight <= 0) {
       //可用高度小于等于0时，设置比例为初始值
       _topToRemainHeightRatio ??= initWhenNoRemainHeight();

@@ -61,6 +61,9 @@ class _MyHomePageState extends State<MyHomePage> {
             bottom: 100,
             slideBottomHeight: 100));
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      floatingOne.open(context);
+    });
     floatingTwo = floatingManager.createFloating(
         "2",
         Floating(
@@ -120,9 +123,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 "显示/关闭左上角没有回弹的悬浮窗",
                 () {
                   var floating = floatingManager.getFloating("1");
-                  floating.isShowing
-                      ? floating.close()
-                      : floating.open(context);
+                  floating.isShowing ? floating.close() : floating.open(context);
                 },
               ),
               ButtonWidget("显示右上角悬浮窗", () {
@@ -152,14 +153,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ButtonWidget("添加禁止滑动到状态栏和底部的悬浮窗", () {
                 floatingManager
                     .createFloating(
-                        DateTime.now().millisecondsSinceEpoch,
+                        'test_slide_floating',
                         Floating(const FloatingIncrement(),
                             slideType: FloatingSlideType.onRightAndBottom,
                             right: 100,
-                            slideStopType: SlideStopType.slideStopLeftType,
                             bottom: floatingManager.floatingSize() * 80,
                             //禁止滑动到状态栏
-                            edgeSpeed: 100,
                             slideTopHeight: MediaQuery.of(context).padding.top,
                             slideBottomHeight: 60))
                     .open(context);

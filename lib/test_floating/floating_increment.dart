@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_floating/floating/manager/floating_manager.dart';
 
 /// @name：floating_increment
 /// @package：
@@ -35,6 +36,9 @@ class _FloatingIncrementState extends State<FloatingIncrement> {
           }
           _counter++;
           });
+          Future.delayed(const Duration(milliseconds: 100), () {
+            floatingManager.getFloating('test_slide_floating').refresh();
+          });
         },
         child: AnimatedContainer(
           width: width,
@@ -42,7 +46,7 @@ class _FloatingIncrementState extends State<FloatingIncrement> {
           decoration: BoxDecoration(
               color: Colors.blue, borderRadius: BorderRadius.circular(50)),
           alignment: Alignment.center,
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 1),
           child: Text(
             '放大缩小$_counter',
             style: const TextStyle(fontWeight: FontWeight.bold),

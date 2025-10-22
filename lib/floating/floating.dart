@@ -157,6 +157,10 @@ class Floating implements FloatingBase {
     _log.logKey = key;
   }
 
+  refresh(){
+    _commonControl.refresh();
+  }
+
   _notifyClose() {
     _log.log("关闭");
     for (var listener in _listener) {

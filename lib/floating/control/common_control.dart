@@ -12,6 +12,7 @@ class CommonControl {
   Point<double> point = Point(0, 0);
   Function(Point<double> point)? _floatingPoint;
   bool _initIsScroll = false;
+  Function ()? _refresh;
 
   ///设置 Floating 位置监听
   setFloatingPoint(Function(Point<double> point) floatingPoint) {
@@ -52,5 +53,13 @@ class CommonControl {
   ///设置隐藏监听
   setHideControlListener(Function(bool isHide) hideControl) {
     _hideControl = hideControl;
+  }
+
+  setRefreshListener(Function () refresh) {
+    _refresh = refresh;
+  }
+
+  refresh() {
+    _refresh?.call();
   }
 }
