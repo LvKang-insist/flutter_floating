@@ -14,11 +14,9 @@ class FloatingData {
   double? right;
   double? bottom;
 
-  double snapToEdgeSpace = 0;
   Point<double>? point;
 
   FloatingSlideType slideType;
-  bool dynamicSlideType = false;
 
   FloatingData(
     this.slideType, {
@@ -27,7 +25,5 @@ class FloatingData {
     this.right,
     this.bottom,
     this.point,
-    this.snapToEdgeSpace = 0,
-    this.dynamicSlideType = false,
   });
 }

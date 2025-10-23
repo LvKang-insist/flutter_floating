@@ -4,13 +4,13 @@
 /// @time：2023/03/30 10:25
 /// @des：拖动后吸附在哪一侧
 
-enum SlideStopType {
+enum SnapEdgeType {
   ///吸附在左侧
-  slideStopLeftType,
+  snapEdgeLeft,
 
   ///吸附在右侧
-  slideStopRightType,
+  snapEdgeRight,
 
   ///吸附在更近的一侧
-  slideStopAutoType,
+  snapEdgeAuto,
 }
