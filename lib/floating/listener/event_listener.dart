@@ -1,5 +1,5 @@
 
-import 'package:flutter_floating/floating/assist/Point.dart';
+import 'package:flutter_floating/floating/assist/point.dart';
 
 /// @name：FloatingListener
 /// @package：

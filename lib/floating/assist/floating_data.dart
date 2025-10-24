@@ -1,6 +1,6 @@
-import 'package:flutter_floating/floating/assist/Point.dart';
+import 'package:flutter_floating/floating/assist/point.dart';
 
-import 'floating_slide_type.dart';
+import 'floating_edge_type.dart';
 
 /// @name：floating_data
 /// @package：
@@ -16,7 +16,7 @@ class FloatingData {
 
   Point<double>? point;
 
-  FloatingSlideType slideType;
+  FloatingEdgeType slideType;
 
   FloatingData(
     this.slideType, {

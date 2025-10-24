@@ -1,7 +1,6 @@
-import 'floating_slide_type.dart';
-import 'slide_stop_type.dart';
+import 'snap_stop_type.dart';
 
-class FloatingCommonParams {
+class FloatingParams {
   ///是否在调用 [Floating.open] 时，保持上一次 [Floating.close] 前的位置
   bool isPosCache = true;
 
@@ -35,7 +34,7 @@ class FloatingCommonParams {
 
 
 
-  FloatingCommonParams({
+  FloatingParams({
     this.isPosCache = true,
     this.isSnapToEdge = true,
     this.isEnableDrag = true,

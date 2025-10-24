@@ -1,14 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_floating/floating/assist/slide_stop_type.dart';
-import 'package:flutter_floating/floating/control/common_control.dart';
-import '../assist/Point.dart';
+import 'package:flutter_floating/floating/assist/snap_stop_type.dart';
+import 'package:flutter_floating/floating/control/floating_controller.dart';
+import '../assist/point.dart';
 import '../assist/floating_common_params.dart';
 import '../assist/floating_data.dart';
-import '../assist/floating_slide_type.dart';
-import '../control/common_type.dart';
-import '../listener/event_listener.dart';
+import '../assist/floating_edge_type.dart';
+import '../control/controller_type.dart';
+import '../control/floating_listener_controller.dart';
 import '../utils/floating_log.dart';
 import 'dart:math';
 import 'floating_scroll_mixin.dart';
@@ -22,16 +22,16 @@ import 'floating_scroll_mixin.dart';
 class FloatingView extends StatefulWidget {
   final Widget child;
   final FloatingData floatingData;
-  final List<FloatingEventListener> _listener;
+  final FloatingListenerController _listenerController;
   final FloatingLog _log;
-  final CommonControl _commonControl;
-  final FloatingCommonParams params;
+  final FloatingController _commonControl;
+  final FloatingParams params;
 
   const FloatingView(
     this.child,
     this.floatingData,
     this.params,
-    this._listener,
+    this._listenerController,
     this._commonControl,
     this._log, {
     Key? key,
@@ -48,7 +48,7 @@ class _FloatingViewState extends State<FloatingView>
 
   late FloatingData _floatingData;
 
-  late FloatingCommonParams _params;
+  late FloatingParams _params;
 
   final double _defaultWidth = 100; //默认宽度
 
@@ -78,25 +78,25 @@ class _FloatingViewState extends State<FloatingView>
 
   initListener() {
     widget._commonControl.handlerListener((type, value) {
-      if (type == CommonType.refresh) return refresh();
-      if (type == CommonType.setPoint) return Point(x, y);
-      if (type == CommonType.setEnableHide) {
+      if (type == ControllerEnumType.refresh) return refresh();
+      if (type == ControllerEnumType.setPoint) return Point(x, y);
+      if (type == ControllerEnumType.setEnableHide) {
         setState(() => isHide = value);
         return;
       }
-      if (type == CommonType.scrollTime) scrollTimeMillis = value;
-      if (type == CommonType.scrollTop) return scrollY(value);
-      if (type == CommonType.scrollLeft) return scrollX(value);
-      if (type == CommonType.scrollRight) return scrollX(_parentWidth - value - _fWidth);
-      if (type == CommonType.scrollBottom) return scrollY(_parentHeight - value - _fHeight);
-      if (type == CommonType.scrollTopLeft) return scrollXY(value.y, value.x);
-      if (type == CommonType.scrollTopRight) {
+      if (type == ControllerEnumType.scrollTime) scrollTimeMillis = value;
+      if (type == ControllerEnumType.scrollTop) return scrollY(value);
+      if (type == ControllerEnumType.scrollLeft) return scrollX(value);
+      if (type == ControllerEnumType.scrollRight) return scrollX(_parentWidth - value - _fWidth);
+      if (type == ControllerEnumType.scrollBottom) return scrollY(_parentHeight - value - _fHeight);
+      if (type == ControllerEnumType.scrollTopLeft) return scrollXY(value.y, value.x);
+      if (type == ControllerEnumType.scrollTopRight) {
         return scrollXY(_parentWidth - value.x - _fWidth, value.y);
       }
-      if (type == CommonType.scrollBottomLeft) {
+      if (type == ControllerEnumType.scrollBottomLeft) {
         return scrollXY(value.x, _parentHeight - value.y - _fHeight);
       }
-      if (type == CommonType.scrollBottomRight) {
+      if (type == ControllerEnumType.scrollBottomRight) {
         return scrollXY(_parentWidth - value.x - _fWidth, _parentHeight - value.y - _fHeight);
       }
     });
@@ -110,12 +110,10 @@ class _FloatingViewState extends State<FloatingView>
     initScrollAnim();
     initListener();
     _contentWidget = _content();
-    setState(() {
-      _setParentSize();
-      _resetFloatingSize();
-      _initPosition();
-    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setParentSize();
+      _setFloatingSize();
+      setState(() => initFloatingPosition());
       _setPositionToRemainRatio();
     });
   }
@@ -142,11 +140,8 @@ class _FloatingViewState extends State<FloatingView>
               child: Offstage(
                 offstage: isHide,
                 child: OrientationBuilder(builder: (context, orientation) {
-                  _checkScreenChange();
-                  return Opacity(
-                    child: _contentWidget,
-                    opacity: _isInitPosition ? 1 : 0,
-                  );
+                  _checkParentSizeChange();
+                  return Opacity(child: _contentWidget, opacity: _isInitPosition ? 1 : 0);
                 }),
               )),
         )
@@ -164,7 +159,7 @@ class _FloatingViewState extends State<FloatingView>
         if (!_checkStartScroll()) return;
         x += details.delta.dx;
         y += details.delta.dy;
-        _opacity = _params.dragOpacity;
+        if (_opacity != _params.dragOpacity) _opacity = _params.dragOpacity;
         _changePosition();
         _notifyMove(x, y);
       },
@@ -185,7 +180,7 @@ class _FloatingViewState extends State<FloatingView>
         child: NotificationListener(
             onNotification: (notification) {
               if (notification is SizeChangedLayoutNotification) {
-                checkFloatingSizeChange();
+                _checkFloatingSizeChange();
               }
               return false;
             },
@@ -195,12 +190,53 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   ///检测是否开启滑动
-  bool _checkStartScroll() {
-    return _params.isEnableDrag;
+  bool _checkStartScroll() => _params.isEnableDrag;
+
+  ///初始位置计算
+  initFloatingPosition() {
+    if (_params.isPosCache && (_floatingData.top != null && _floatingData.left != null)) {
+      _setCacheData();
+      _isInitPosition = true;
+      return;
+    }
+    void _topInit() => y = _floatingData.top ?? _params.margeTop;
+
+    void _leftInit() => x = _floatingData.left ?? _params.snapToEdgeSpace;
+
+    void _rightInit() =>
+        x = _parentWidth - (_floatingData.right ?? _params.snapToEdgeSpace) - _fWidth;
+
+    void _bottomInit() =>
+        y = _parentHeight - (_floatingData.bottom ?? _params.margeBottom) - _fHeight;
+
+    switch (_floatingData.slideType) {
+      case FloatingEdgeType.onLeftAndTop:
+        _topInit();
+        _leftInit();
+        break;
+      case FloatingEdgeType.onLeftAndBottom:
+        _leftInit();
+        _bottomInit();
+        break;
+      case FloatingEdgeType.onRightAndTop:
+        _rightInit();
+        _topInit();
+        break;
+      case FloatingEdgeType.onRightAndBottom:
+        _rightInit();
+        _bottomInit();
+        break;
+      case FloatingEdgeType.onPoint:
+        y = _floatingData.point?.y ?? _params.margeBottom;
+        x = _floatingData.point?.x ?? _params.snapToEdgeSpace;
+        break;
+    }
+    _saveCacheData(x, y);
+    _isInitPosition = true;
   }
 
-  ///判断屏幕是否发生改变
-  _checkScreenChange() {
+  ///判断屏幕尺寸变化
+  _checkParentSizeChange() {
     //如果屏幕宽高为0，直接退出
     if (_parentWidth == 0 || _parentHeight == 0) return;
     var width = MediaQuery.of(context).size.width;
@@ -226,7 +262,7 @@ class _FloatingViewState extends State<FloatingView>
     }
     // 处理无法移动的情况
     if (leftBorder[1] < leftBorder[0]) {
-      if (type == FloatingSlideType.onRightAndBottom || type == FloatingSlideType.onRightAndTop) {
+      if (type == FloatingEdgeType.onRightAndBottom || type == FloatingEdgeType.onRightAndTop) {
         leftBorder[0] = leftBorder[1];
       } else {
         leftBorder[1] = leftBorder[0];
@@ -237,7 +273,7 @@ class _FloatingViewState extends State<FloatingView>
     List<double> topBorder = [_params.margeTop, _parentHeight - _fHeight - _params.margeBottom];
     // 处理无法移动的情况
     if (topBorder[1] < topBorder[0]) {
-      if (type == FloatingSlideType.onRightAndBottom || type == FloatingSlideType.onLeftAndBottom) {
+      if (type == FloatingEdgeType.onRightAndBottom || type == FloatingEdgeType.onLeftAndBottom) {
         topBorder[0] = topBorder[1];
       } else {
         topBorder[1] = topBorder[0];
@@ -300,12 +336,6 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   refresh() {
-    setState(() {
-      _changePosition();
-      _setParentSize();
-      _resetFloatingSize();
-      _initPosition();
-    });
     //停止后靠边操作
     // _animateMovePosition();
   }
@@ -317,77 +347,6 @@ class _FloatingViewState extends State<FloatingView>
     }
   }
 
-  _initPosition() {
-    if (_params.isPosCache) {
-      //如果之前没有缓存数据
-      if (_floatingData.top == null || _floatingData.left == null) return setInitSlide();
-      _setCacheData();
-    } else {
-      setInitSlide();
-    }
-    _isInitPosition = true;
-  }
-
-  setInitSlide() {
-    void _topInit() => y = _floatingData.top ?? _params.margeTop;
-
-    void _leftInit() => x = _floatingData.left ?? _params.snapToEdgeSpace;
-
-    void _rightInit() =>
-        x = _parentWidth - (_floatingData.right ?? _params.snapToEdgeSpace) - _fWidth;
-
-    void _bottomInit() =>
-        y = _parentHeight - (_floatingData.bottom ?? _params.margeBottom) - _fHeight;
-
-    switch (_floatingData.slideType) {
-      case FloatingSlideType.onLeftAndTop:
-        _topInit();
-        _leftInit();
-        break;
-      case FloatingSlideType.onLeftAndBottom:
-        _leftInit();
-        _bottomInit();
-        break;
-      case FloatingSlideType.onRightAndTop:
-        _rightInit();
-        _topInit();
-        break;
-      case FloatingSlideType.onRightAndBottom:
-        _rightInit();
-        _bottomInit();
-        break;
-      case FloatingSlideType.onPoint:
-        y = _floatingData.point?.y ?? _params.margeBottom;
-        x = _floatingData.point?.x ?? _params.snapToEdgeSpace;
-        break;
-    }
-    _saveCacheData(x, y);
-  }
-
-  // 处理吸附在左右两侧的情况
-  _calcNewLeftWhenSnapToEdge() {
-    _slideLeft() {
-      x = _params.snapToEdgeSpace;
-    }
-
-    _slideRight() {
-      x = _parentWidth - _fWidth - _params.snapToEdgeSpace;
-    }
-
-    switch (_params.snapEdgeType) {
-      case SnapEdgeType.snapEdgeLeft:
-        _slideLeft();
-        break;
-      case SnapEdgeType.snapEdgeRight:
-        _slideRight();
-        break;
-      case SnapEdgeType.snapEdgeAuto:
-        var centerX = _parentWidth / 2.0; //中心位置
-        ((x + _fWidth / 2) < centerX) ? _slideLeft() : _slideRight();
-        break;
-    }
-  }
-
   /// 当外尺寸变化时，需重新计算坐标，以使悬浮窗尽可能显示
   _calcNewPositionByRatio() {
     _calcNewTopByRatio();
@@ -396,8 +355,8 @@ class _FloatingViewState extends State<FloatingView>
 
   _calcNewLeftByRatio() {
     void setBySlide() {
-      if (_floatingData.slideType == FloatingSlideType.onRightAndBottom ||
-          _floatingData.slideType == FloatingSlideType.onRightAndTop) {
+      if (_floatingData.slideType == FloatingEdgeType.onRightAndBottom ||
+          _floatingData.slideType == FloatingEdgeType.onRightAndTop) {
         x = _parentWidth - _fWidth - _params.snapToEdgeSpace;
       } else {
         x = _params.snapToEdgeSpace;
@@ -421,10 +380,30 @@ class _FloatingViewState extends State<FloatingView>
     if (_params.isSnapToEdge) _calcNewLeftWhenSnapToEdge();
   }
 
+  /// 处理吸附在左右两侧的情况
+  _calcNewLeftWhenSnapToEdge() {
+    _slideLeft() => x = _params.snapToEdgeSpace;
+
+    _slideRight() => x = _parentWidth - _fWidth - _params.snapToEdgeSpace;
+
+    switch (_params.snapEdgeType) {
+      case SnapEdgeType.snapEdgeLeft:
+        _slideLeft();
+        break;
+      case SnapEdgeType.snapEdgeRight:
+        _slideRight();
+        break;
+      case SnapEdgeType.snapEdgeAuto:
+        var centerX = _parentWidth / 2.0; //中心位置
+        ((x + _fWidth / 2) < centerX) ? _slideLeft() : _slideRight();
+        break;
+    }
+  }
+
   _calcNewTopByRatio() {
     void setBySlide() {
-      if (_floatingData.slideType == FloatingSlideType.onLeftAndBottom ||
-          _floatingData.slideType == FloatingSlideType.onRightAndBottom) {
+      if (_floatingData.slideType == FloatingEdgeType.onLeftAndBottom ||
+          _floatingData.slideType == FloatingEdgeType.onRightAndBottom) {
         y = _parentHeight - _params.margeBottom - _fHeight;
       } else {
         y = _params.margeTop;
@@ -467,12 +446,12 @@ class _FloatingViewState extends State<FloatingView>
   _setTopToRemainHeightRatio() {
     double initWhenNoRemainHeight() {
       switch (_floatingData.slideType) {
-        case FloatingSlideType.onLeftAndTop:
-        case FloatingSlideType.onRightAndTop:
-        case FloatingSlideType.onPoint:
+        case FloatingEdgeType.onLeftAndTop:
+        case FloatingEdgeType.onRightAndTop:
+        case FloatingEdgeType.onPoint:
           return 0;
-        case FloatingSlideType.onLeftAndBottom:
-        case FloatingSlideType.onRightAndBottom:
+        case FloatingEdgeType.onLeftAndBottom:
+        case FloatingEdgeType.onRightAndBottom:
           return 1;
       }
     }
@@ -500,12 +479,12 @@ class _FloatingViewState extends State<FloatingView>
   _setLeftToRemainWidthRatio() {
     double initWhenNoRemainWidth() {
       switch (_floatingData.slideType) {
-        case FloatingSlideType.onLeftAndTop:
-        case FloatingSlideType.onLeftAndBottom:
+        case FloatingEdgeType.onLeftAndTop:
+        case FloatingEdgeType.onLeftAndBottom:
           return 0;
-        case FloatingSlideType.onRightAndTop:
-        case FloatingSlideType.onRightAndBottom:
-        case FloatingSlideType.onPoint:
+        case FloatingEdgeType.onRightAndTop:
+        case FloatingEdgeType.onRightAndBottom:
+        case FloatingEdgeType.onPoint:
           return 1;
       }
     }
@@ -544,16 +523,16 @@ class _FloatingViewState extends State<FloatingView>
     }
   }
 
-  ///floating 宽高是否改变，true 表示改变
-  checkFloatingSizeChange() {
+  ///检测悬浮窗尺寸变化
+  _checkFloatingSizeChange() {
     renderBox ??= _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
     var w = renderBox?.size.width ?? _defaultWidth;
     var h = renderBox?.size.height ?? _defaultHeight;
     if (w == _fWidth && h == _fHeight) return;
     _setParentSize();
-    _resetFloatingSize();
+    _setFloatingSize();
     setState(() {
-      setSlide();
+      _setFloatingPosition();
       _setPositionToRemainRatio();
       _saveCacheData(x, y);
     });
@@ -566,14 +545,14 @@ class _FloatingViewState extends State<FloatingView>
     }
   }
 
-  _resetFloatingSize() {
+  _setFloatingSize() {
     renderBox ??= _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
     _fWidth = renderBox?.size.width ?? _defaultWidth;
     _fHeight = renderBox?.size.height ?? _defaultHeight;
   }
 
   // 悬浮窗尺寸变化时，根据起始点重新计算坐标
-  setSlide() {
+  _setFloatingPosition() {
     // 计算可用高度和宽度
     double availableHeight = _parentHeight - _params.margeTop - _params.margeBottom;
     double availableWidth = _parentWidth - _params.snapToEdgeSpace * 2;
@@ -620,20 +599,20 @@ class _FloatingViewState extends State<FloatingView>
     }
 
     switch (_floatingData.slideType) {
-      case FloatingSlideType.onLeftAndTop:
-      case FloatingSlideType.onPoint:
+      case FloatingEdgeType.onLeftAndTop:
+      case FloatingEdgeType.onPoint:
         _leftSet();
         _topSet();
         break;
-      case FloatingSlideType.onLeftAndBottom:
+      case FloatingEdgeType.onLeftAndBottom:
         _leftSet();
         _bottomSet();
         break;
-      case FloatingSlideType.onRightAndTop:
+      case FloatingEdgeType.onRightAndTop:
         _rightSet();
         _topSet();
         break;
-      case FloatingSlideType.onRightAndBottom:
+      case FloatingEdgeType.onRightAndBottom:
         _rightSet();
         _bottomSet();
         break;
@@ -663,29 +642,21 @@ class _FloatingViewState extends State<FloatingView>
 
   _notifyMove(double x, double y) {
     widget._log.log("移动 X:$x Y:$y");
-    for (var element in widget._listener) {
-      element.moveListener?.call(Point(x, y));
-    }
+    widget._listenerController.notifyTouchMove(Point(x, y));
   }
 
   _notifyMoveEnd(double x, double y) {
     widget._log.log("移动结束 X:$x Y:$y");
-    for (var element in widget._listener) {
-      element.moveEndListener?.call(Point(x, y));
-    }
+    widget._listenerController.notifyTouchMoveEnd(Point(x, y));
   }
 
   _notifyDown(double x, double y) {
     widget._log.log("按下 X:$x Y:$y");
-    for (var element in widget._listener) {
-      element.downListener?.call(Point(x, y));
-    }
+    widget._listenerController.notifyTouchDown(Point(x, y));
   }
 
   _notifyUp(double x, double y) {
     widget._log.log("抬起 X:$x Y:$y");
-    for (var element in widget._listener) {
-      element.upListener?.call(Point(x, y));
-    }
+    widget._listenerController.notifyTouchUp(Point(x, y));
   }
 }

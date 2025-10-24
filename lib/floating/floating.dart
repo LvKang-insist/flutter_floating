@@ -1,13 +1,14 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_floating/floating/assist/Point.dart';
+import 'package:flutter_floating/floating/assist/point.dart';
 import 'package:flutter_floating/floating/base/floating_base.dart';
-import 'package:flutter_floating/floating/control/common_control.dart';
+import 'package:flutter_floating/floating/control/floating_controller.dart';
+import 'package:flutter_floating/floating/control/floating_listener_controller.dart';
 import 'package:flutter_floating/floating/listener/event_listener.dart';
 import 'package:flutter_floating/floating/utils/floating_log.dart';
 import 'package:flutter_floating/floating/view/floating_view.dart';
 import 'assist/floating_common_params.dart';
 import 'assist/floating_data.dart';
-import 'assist/floating_slide_type.dart';
+import 'assist/floating_edge_type.dart';
 
 /// @name：floating
 /// @package：
@@ -22,11 +23,11 @@ class Floating implements FloatingBase {
 
   late FloatingData _floatingData;
 
-  late CommonControl _commonControl;
+  late FloatingController _commonControl;
 
-  late FloatingCommonParams _params;
+  late FloatingListenerController _listenerController;
 
-  final List<FloatingEventListener> _listener = [];
+  late FloatingParams _params;
 
   late FloatingLog _log;
   String logKey = "";
@@ -38,31 +39,32 @@ class Floating implements FloatingBase {
   ///[child]需要悬浮的 widget
   ///
   ///[top],[left],[left],[bottom],[point] 对应 [slideType]，设置与起始点的距离
-  ///例如设置[slideType]为[FloatingSlideType.onRightAndBottom]，则需要传入[bottom]和[right]
-  ///设置 [slideType]为 [FloatingSlideType.onPoint] 则需要传入 [point]
+  ///例如设置[slideType]为[FloatingEdgeType.onRightAndBottom]，则需要传入[bottom]和[right]
+  ///设置 [slideType]为 [FloatingEdgeType.onPoint] 则需要传入 [point]
   ///
 
   ///
   Floating(
     Widget child, {
-    FloatingSlideType slideType = FloatingSlideType.onRightAndBottom,
+    FloatingEdgeType slideType = FloatingEdgeType.onRightAndBottom,
     double? top,
     double? left,
     double? right,
     double? bottom,
     Point<double>? point,
-    FloatingCommonParams? params,
+    FloatingParams? params,
   }) {
     _floatingData =
         FloatingData(slideType, left: left, right: right, top: top, bottom: bottom, point: point);
-    _params = params ?? FloatingCommonParams();
+    _params = params ?? FloatingParams();
     _log = FloatingLog(_params.isShowLog);
-    _commonControl = CommonControl();
+    _commonControl = FloatingController();
+    _listenerController = FloatingListenerController();
     _floatingView = FloatingView(
       child,
       _floatingData,
       _params,
-      _listener,
+      _listenerController,
       _commonControl,
       _log,
     );
@@ -109,7 +111,7 @@ class Floating implements FloatingBase {
 
   ///添加监听
   addFloatingListener(FloatingEventListener listener) {
-    _listener.contains(listener) ? null : _listener.add(listener);
+    _listenerController.addFloatingListener(listener);
   }
 
   ///是否允许拖动悬浮窗
@@ -123,44 +125,27 @@ class Floating implements FloatingBase {
     _log.logKey = key;
   }
 
-  refresh() {
-    _commonControl.refresh();
+  _notifyOpen() {
+    _log.log("打开");
+    _listenerController.notifyOpen();
   }
 
   _notifyClose() {
     _log.log("关闭");
-    for (var listener in _listener) {
-      listener.closeListener?.call();
-    }
-  }
-
-  _notifyOpen() {
-    _log.log("打开");
-    for (var listener in _listener) {
-      listener.openListener?.call();
-    }
-  }
-
-  _notifyHideFloating() {
-    _log.log("隐藏");
-    for (var listener in _listener) {
-      listener.hideFloatingListener?.call();
-    }
+    _listenerController.notifyClose();
   }
 
   _notifyShowFloating() {
     _log.log("显示");
-    for (var listener in _listener) {
-      listener.showFloatingListener?.call();
-    }
+    _listenerController.notifyShowFloating();
+  }
+
+  _notifyHideFloating() {
+    _log.log("隐藏");
+    _listenerController.notifyHideFloating();
   }
 
   ///获取悬浮窗
   @override
   Widget getFloating() => _floatingView;
-
-
-  /// 获取悬浮窗位置
-  @override
-  Point<num> getFloatingPoint() => _commonControl.getPoint();
 }
