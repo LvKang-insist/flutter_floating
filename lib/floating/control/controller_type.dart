@@ -8,6 +8,9 @@ enum ControllerEnumType {
   ///设置隐藏
   setEnableHide,
 
+  ///设置是否可以拖动
+  setDragEnable,
+
   ///滑动时间
   scrollTime,
 

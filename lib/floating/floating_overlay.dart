@@ -53,12 +53,13 @@ class FloatingOverlay implements FloatingBase {
     double? bottom,
     Point<double>? point,
     FloatingParams? params,
+    FloatingCommonController? controller,
   }) {
     _floatingData =
         FloatingData(slideType, left: left, right: right, top: top, bottom: bottom, point: point);
     _params = params ?? FloatingParams();
     _log = FloatingLog(_params.isShowLog);
-    _commonControl = FloatingCommonController();
+    _commonControl = controller ?? FloatingCommonController();
     _listenerController = FloatingListenerController();
     _floatingView = FloatingView(
       child,
@@ -117,10 +118,13 @@ class FloatingOverlay implements FloatingBase {
   ///是否允许拖动悬浮窗
   ///[isScroll] true 表示启动，否则关闭
   setDragEnable(bool isScroll) {
-    _params.isDragEnable = isScroll;
+    // prefer sending command via controller (FloatingView listens and will update its params)
+    _commonControl.setDragEnable(isScroll);
+    // keep local params consistent
+    _params = _params.copyWith(isDragEnable: isScroll);
   }
 
-  ///设置 [FloatingLog] 标识
+  /// 设置 [FloatingLog] 标识
   setLogKey(String key) {
     _log.logKey = key;
   }
@@ -148,4 +152,7 @@ class FloatingOverlay implements FloatingBase {
   ///获取悬浮窗
   @override
   Widget getFloating() => _floatingView;
+
+  /// 获取或设置外部控制器（如果需要直接调用控制器方法）
+  FloatingCommonController get controller => _commonControl;
 }

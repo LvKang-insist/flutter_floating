@@ -10,6 +10,10 @@ mixin FloatingScrollMixin on TickerProvider {
   late Animation<double> _slideAnimation; //动画
   late AnimationController _scrollController; //滑动动画控制器
 
+  // 存储当前添加的 listeners，以便在下一次动画前移除，避免累积
+  VoidCallback? _slideListener;
+  VoidCallback? _scrollListener;
+
   initScrollAnim() {
     _slideController = AnimationController(duration: const Duration(milliseconds: 0), vsync: this);
     _slideAnimation = Tween(begin: 0.0, end: 0.0).animate(_slideController);
@@ -17,71 +21,120 @@ mixin FloatingScrollMixin on TickerProvider {
   }
 
   disposeScrollAnim() {
+    // 移除可能残留的 listeners
+    if (_slideListener != null) {
+      try {
+        _slideAnimation.removeListener(_slideListener!);
+      } catch (_) {}
+      _slideListener = null;
+    }
+    if (_scrollListener != null) {
+      try {
+        _scrollController.removeListener(_scrollListener!);
+      } catch (_) {}
+      _scrollListener = null;
+    }
     _slideController.dispose();
     _scrollController.dispose();
   }
 
 
   animationSlide(double left, double toPositionX, int time, Function completed) {
-    _slideController.dispose();
-    _slideController = AnimationController(duration: Duration(milliseconds: time), vsync: this);
-    _slideAnimation = Tween(begin: left, end: toPositionX * 1.0).animate(_slideController);
-    //回弹动画
-    _slideAnimation.addListener(() {
+    // 停止并重用已有 controller，设置时长
+    if (_slideController.isAnimating) _slideController.stop();
+    _slideController.duration = Duration(milliseconds: time);
+
+    // 移除上一次 listener
+    if (_slideListener != null) {
+      try {
+        _slideAnimation.removeListener(_slideListener!);
+      } catch (_) {}
+      _slideListener = null;
+    }
+
+    // tween 从当前 x 到目标位置，确保能从任意起点动画到目标
+    _slideAnimation = Tween(begin: this.x, end: toPositionX * 1.0).animate(_slideController);
+    // 回弹动画监听
+    _slideListener = () {
       x = _slideAnimation.value.toDouble();
       handlerSaveCacheDataAndNotify(x, y);
-    });
-    _slideController.addStatusListener((status) {
+    };
+    _slideAnimation.addListener(_slideListener!);
+
+    void _statusHandler(AnimationStatus status) {
       if (status == AnimationStatus.completed) {
+        // remove listener after complete to avoid leak
+        if (_slideListener != null) {
+          try {
+            _slideAnimation.removeListener(_slideListener!);
+          } catch (_) {}
+          _slideListener = null;
+        }
         completed.call();
+        _slideController.removeStatusListener(_statusHandler);
       }
-    });
-    _slideController.forward();
-  }
-
-  scrollXY(double x, double y) {
-    if ((x > 0 || y > 0) && (this.x != x || this.y != y)) {
-      _scrollController.dispose();
-      _scrollController =
-          AnimationController(duration: Duration(milliseconds: scrollTimeMillis), vsync: this);
-      var t = Tween(begin: y, end: y).animate(_scrollController);
-      var l = Tween(begin: x, end: x).animate(_scrollController);
-      _scrollController.addListener(() {
-        y = t.value.toDouble();
-        x = l.value.toDouble();
-        handlerSaveCacheDataAndNotify(x, y);
-      });
-      _scrollController.forward();
     }
+
+    _slideController.addStatusListener(_statusHandler);
+    _slideController.forward(from: 0.0);
   }
 
-  scrollX(double left) {
-    if (left > 0 && x != left) {
-      _scrollController.dispose();
-      _scrollController =
-          AnimationController(duration: Duration(milliseconds: scrollTimeMillis), vsync: this);
-      var anim = Tween(begin: x, end: left).animate(_scrollController);
-      anim.addListener(() {
-        x = anim.value.toDouble();
-        handlerSaveCacheDataAndNotify(x, y);
-      });
-      _scrollController.forward();
+   scrollXY(double x, double y) {
+    // allow animating to zero and ensure we tween from current values to targets
+    if ((this.x != x) || (this.y != y)) {
+      if (_scrollController.isAnimating) _scrollController.stop();
+      _scrollController.duration = Duration(milliseconds: scrollTimeMillis);
+
+      // remove previous listener if any
+      if (_scrollListener != null) {
+        try {
+          _scrollController.removeListener(_scrollListener!);
+        } catch (_) {}
+        _scrollListener = null;
+      }
+
+      // create animations for x and y driven by the same controller
+      final animY = Tween(begin: this.y, end: y).animate(_scrollController);
+      final animX = Tween(begin: this.x, end: x).animate(_scrollController);
+
+      _scrollListener = () {
+        this.y = animY.value.toDouble();
+        this.x = animX.value.toDouble();
+        handlerSaveCacheDataAndNotify(this.x, this.y);
+      };
+
+      _scrollController.addListener(_scrollListener!);
+
+      void _statusHandler(AnimationStatus status) {
+        if (status == AnimationStatus.completed) {
+          if (_scrollListener != null) {
+            try {
+              _scrollController.removeListener(_scrollListener!);
+            } catch (_) {}
+            _scrollListener = null;
+          }
+          _scrollController.removeStatusListener(_statusHandler);
+        }
+      }
+
+      _scrollController.addStatusListener(_statusHandler);
+      _scrollController.forward(from: 0.0);
     }
-  }
+   }
 
-  scrollY(double top) {
-    if (top > 0 && y != top) {
-      _scrollController.dispose();
-      _scrollController =
-          AnimationController(duration: Duration(milliseconds: scrollTimeMillis), vsync: this);
-      var anim = Tween(begin: y, end: top).animate(_scrollController);
-      anim.addListener(() {
-        y = anim.value.toDouble();
-        handlerSaveCacheDataAndNotify(x, y);
-      });
-      _scrollController.forward();
+   scrollX(double left) {
+    // allow scrolling to 0 (edge) as well
+    if (left >= 0 && this.x != left) {
+      scrollXY(left, this.y);
     }
-  }
+   }
 
-  handlerSaveCacheDataAndNotify(double x, double y);
-}
+   scrollY(double top) {
+    // allow scrolling to 0 (edge) as well
+    if (top >= 0 && this.y != top) {
+      scrollXY(this.x, top);
+    }
+   }
+
+   handlerSaveCacheDataAndNotify(double x, double y);
+ }

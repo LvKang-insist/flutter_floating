@@ -84,6 +84,11 @@ class _FloatingViewState extends State<FloatingView>
         setState(() => isHide = value);
         return;
       }
+      if (type == ControllerEnumType.setDragEnable) {
+        // update params immutably and refresh
+        setState(() => _params = _params.copyWith(isDragEnable: value));
+        return;
+      }
       if (type == ControllerEnumType.scrollTime) scrollTimeMillis = value;
       if (type == ControllerEnumType.scrollTop) return scrollY(value);
       if (type == ControllerEnumType.scrollLeft) return scrollX(value);
@@ -363,7 +368,7 @@ class _FloatingViewState extends State<FloatingView>
       }
     }
 
-    //计算可用宽度，减去左右两侧的预留宽度
+    //计算可用宽度，减去左右两侧的预留宽度（相对于 snapToEdgeSpace）
     double availableWidth = _parentWidth - _params.snapToEdgeSpace * 2;
     if (availableWidth <= 0) {
       setBySlide();
@@ -375,7 +380,8 @@ class _FloatingViewState extends State<FloatingView>
     if (remainWidth <= 0) {
       setBySlide();
     } else {
-      x = _leftToRemainWidthRatio! * remainWidth;
+      // left position should be offset from snapToEdgeSpace
+      x = _params.snapToEdgeSpace + (_leftToRemainWidthRatio ?? 0) * remainWidth;
     }
     if (_params.isSnapToEdge) _calcNewLeftWhenSnapToEdge();
   }
@@ -425,8 +431,8 @@ class _FloatingViewState extends State<FloatingView>
       //剩余高度小于等于0时，设置在初始位置
       setBySlide();
     } else {
-      // 根据剩余高度和距离顶部的高度比,计算新的顶部距离
-      y = _topToRemainHeightRatio! * remainHeight;
+      // 根据剩余高度和距离顶部的高度比,计算新的顶部距离（加上 marginTop 偏移）
+      y = _params.marginTop + (_topToRemainHeightRatio ?? 0) * remainHeight;
     }
   }
 
@@ -463,16 +469,17 @@ class _FloatingViewState extends State<FloatingView>
       _topToRemainHeightRatio ??= initWhenNoRemainHeight();
       return;
     }
-    // 计算悬浮窗在可用高度范围内的高度
-    double heightInRange = min(availableHeight - y, _fHeight);
+    // 计算悬浮窗在可用高度范围内的高度（不包含 margin）
+    double heightInRange = min(availableHeight, _fHeight);
     // 剩余可用高度
-    double remainHeight = _parentHeight - heightInRange;
+    double remainHeight = availableHeight - heightInRange;
     if (remainHeight <= 0) {
       //剩余高度小于等于0时，设置比例为初始值
       _topToRemainHeightRatio ??= initWhenNoRemainHeight();
     } else {
-      //计算顶部距离与剩余高度之比
-      _topToRemainHeightRatio = y / remainHeight;
+      //计算顶部距离（相对于 marginTop 的偏移）与剩余高度之比
+      double offsetFromMargin = (y - _params.marginTop).clamp(0.0, remainHeight);
+      _topToRemainHeightRatio = offsetFromMargin / remainHeight;
     }
   }
 
@@ -489,7 +496,7 @@ class _FloatingViewState extends State<FloatingView>
       }
     }
 
-    // 计算可用宽度，减去左右两侧的预留宽度
+    // 计算可用宽度，减去左右两侧的预留宽度（相对于 snapToEdgeSpace）
     double availableWidth = _parentWidth - _params.snapToEdgeSpace * 2;
     if (availableWidth <= 0) {
       //可用宽度小于等于0时，设置比例为初始值
@@ -497,15 +504,16 @@ class _FloatingViewState extends State<FloatingView>
       return;
     }
     // 计算悬浮窗在可用宽度范围内的宽度
-    double widthInRange = min(availableWidth - x, _fWidth);
+    double widthInRange = min(availableWidth, _fWidth);
     // 根据外部宽度和悬浮窗宽度计算剩余宽度
-    double remainWidth = _parentWidth - widthInRange;
+    double remainWidth = availableWidth - widthInRange;
     if (remainWidth <= 0) {
       //剩余宽度小于等于0时，设置比例为初始值
       _leftToRemainWidthRatio ??= initWhenNoRemainWidth();
     } else {
-      //计算左侧距离与剩余宽度之比
-      _leftToRemainWidthRatio = x / remainWidth;
+      //计算左侧距离（相对于 snapToEdgeSpace 的偏移）与剩余宽度之比
+      double offsetFromSnap = (x - _params.snapToEdgeSpace).clamp(0.0, remainWidth);
+      _leftToRemainWidthRatio = offsetFromSnap / remainWidth;
     }
   }
 
