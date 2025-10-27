@@ -3,10 +3,7 @@ import 'package:example/game.dart';
 import 'package:example/page/internal_floating_page.dart';
 import 'package:example/page/page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_floating/floating/assist/floating_common_params.dart';
-import 'package:flutter_floating/floating/assist/floating_edge_type.dart';
-import 'package:flutter_floating/floating/floating_overlay.dart';
-import 'package:flutter_floating/floating/manager/floating_manager.dart';
+import 'package:flutter_floating/flutter_floating.dart';
 import 'floating_icon.dart';
 
 void main() => runApp(const MyApp());

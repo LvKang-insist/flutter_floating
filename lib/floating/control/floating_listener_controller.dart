@@ -34,25 +34,25 @@ class FloatingListenerController {
     }
   }
 
-  void notifyTouchDown(Point<double> point) {
+  void notifyTouchDown(FPosition<double> point) {
     for (var listener in _listener) {
       listener.downListener?.call(point);
     }
   }
 
-  void notifyTouchUp(Point<double> point) {
+  void notifyTouchUp(FPosition<double> point) {
     for (var listener in _listener) {
       listener.upListener?.call(point);
     }
   }
 
-  void notifyTouchMove(Point<double> point) {
+  void notifyTouchMove(FPosition<double> point) {
     for (var listener in _listener) {
       listener.moveListener?.call(point);
     }
   }
 
-  void notifyTouchMoveEnd(Point<double> point) {
+  void notifyTouchMoveEnd(FPosition<double> point) {
     for (var listener in _listener) {
       listener.moveEndListener?.call(point);
     }

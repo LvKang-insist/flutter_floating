@@ -1,14 +1,15 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_floating/floating/assist/point.dart';
-import 'package:flutter_floating/floating/base/floating_base.dart';
-import 'package:flutter_floating/floating/control/floating_common_controller.dart';
-import 'package:flutter_floating/floating/control/floating_listener_controller.dart';
-import 'package:flutter_floating/floating/listener/event_listener.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_floating/floating/utils/floating_log.dart';
 import 'package:flutter_floating/floating/view/floating_view.dart';
+
 import 'assist/floating_common_params.dart';
 import 'assist/floating_data.dart';
 import 'assist/floating_edge_type.dart';
+import 'assist/point.dart';
+import 'base/floating_base.dart';
+import 'control/floating_common_controller.dart';
+import 'control/floating_listener_controller.dart';
+import 'listener/event_listener.dart';
 
 /// @name：floating
 /// @package：
@@ -51,13 +52,13 @@ class FloatingOverlay implements FloatingBase {
     double? left,
     double? right,
     double? bottom,
-    Point<double>? point,
+    FPosition<double>? point,
     FloatingParams? params,
     FloatingCommonController? controller,
   }) {
-    _floatingData =
-        FloatingData(slideType, left: left, right: right, top: top, bottom: bottom, point: point);
-    _params = params ?? FloatingParams();
+    _floatingData = FloatingData(slideType,
+        left: left, right: right, top: top, bottom: bottom, position: point);
+    _params = params ?? const FloatingParams();
     _log = FloatingLog(_params.isShowLog);
     _commonControl = controller ?? FloatingCommonController();
     _listenerController = FloatingListenerController();
@@ -90,6 +91,10 @@ class FloatingOverlay implements FloatingBase {
     _overlayEntry.remove();
     _isShowing = false;
     _notifyClose();
+    // dispose internally created controller to avoid leaks
+    try {
+      _commonControl.dispose();
+    } catch (_) {}
   }
 
   ///隐藏悬浮窗，保留其状态
@@ -113,15 +118,6 @@ class FloatingOverlay implements FloatingBase {
   ///添加监听
   addFloatingListener(FloatingEventListener listener) {
     _listenerController.addFloatingListener(listener);
-  }
-
-  ///是否允许拖动悬浮窗
-  ///[isScroll] true 表示启动，否则关闭
-  setDragEnable(bool isScroll) {
-    // prefer sending command via controller (FloatingView listens and will update its params)
-    _commonControl.setDragEnable(isScroll);
-    // keep local params consistent
-    _params = _params.copyWith(isDragEnable: isScroll);
   }
 
   /// 设置 [FloatingLog] 标识

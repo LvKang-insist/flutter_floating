@@ -4,9 +4,9 @@
 /// @time：2022/02/11 14:50
 /// @des：
 
-class Point<T> {
+class FPosition<T> {
   T x;
   T y;
 
-  Point(this.x, this.y);
+  FPosition(this.x, this.y);
 }

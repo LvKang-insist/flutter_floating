@@ -21,14 +21,14 @@ class FloatingEventListener {
   Function? showFloatingListener;
 
   ///手指按下
-  Function(Point<double>)? downListener;
+  Function(FPosition<double>)? downListener;
 
   ///手指抬起
-  Function(Point<double>)? upListener;
+  Function(FPosition<double>)? upListener;
 
   ///手指移动
-  Function(Point<double>)? moveListener;
+  Function(FPosition<double>)? moveListener;
 
   ///手指移动结束
-  Function(Point<double>)? moveEndListener;
+  Function(FPosition<double>)? moveEndListener;
 }

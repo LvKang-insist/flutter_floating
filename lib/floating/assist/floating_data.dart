@@ -14,7 +14,7 @@ class FloatingData {
   double? right;
   double? bottom;
 
-  Point<double>? point;
+  FPosition<double>? position;
 
   FloatingEdgeType slideType;
 
@@ -24,6 +24,6 @@ class FloatingData {
     this.top,
     this.right,
     this.bottom,
-    this.point,
+    this.position,
   });
 }

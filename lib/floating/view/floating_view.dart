@@ -1,16 +1,16 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_floating/floating/assist/snap_stop_type.dart';
-import 'package:flutter_floating/floating/control/floating_common_controller.dart';
-import '../assist/point.dart';
 import '../assist/floating_common_params.dart';
 import '../assist/floating_data.dart';
 import '../assist/floating_edge_type.dart';
+import '../assist/point.dart';
+import '../assist/snap_stop_type.dart';
 import '../control/controller_type.dart';
+import '../control/floating_common_controller.dart';
 import '../control/floating_listener_controller.dart';
 import '../utils/floating_log.dart';
-import 'dart:math';
 import 'floating_scroll_mixin.dart';
 
 /// @name：floating
@@ -75,36 +75,102 @@ class _FloatingViewState extends State<FloatingView>
   late Widget _contentWidget;
 
   bool isHide = false;
+  StreamSubscription? _controllerSub;
 
   initListener() {
-    widget._commonControl.handlerListener((type, value) {
-      if (type == ControllerEnumType.refresh) return refresh();
-      if (type == ControllerEnumType.setPoint) return Point(x, y);
-      if (type == ControllerEnumType.setEnableHide) {
-        setState(() => isHide = value);
-        return;
+    // subscribe to controller commands stream (private _commands, accessible within the same library part)
+    _controllerSub = widget._commonControl.commands.listen(_onControllerCommand);
+  }
+
+  // Handle commands from the controller in a single place to improve readability
+  void _onControllerCommand(cmd) {
+    final v = cmd.value;
+    final Completer<void>? completer = cmd.completer;
+    final type = cmd.type;
+
+    switch (type) {
+      case ControllerEnumType.refresh:
+        refresh();
+        break;
+
+      case ControllerEnumType.setPoint:
+        _completeSafely(completer, FPosition(fx, fy));
+        break;
+
+      case ControllerEnumType.setEnableHide:
+        setState(() => isHide = v as bool);
+        _completeSafely(completer);
+        break;
+
+      case ControllerEnumType.setDragEnable:
+        setState(() => _params = _params.copyWith(isDragEnable: v as bool));
+        _completeSafely(completer);
+        break;
+
+      case ControllerEnumType.scrollTime:
+        scrollTimeMillis = v as int;
+        break;
+
+      case ControllerEnumType.scrollTop:
+        scrollXY(fx, v as double, onComplete: () => _completeSafely(completer));
+        break;
+
+      case ControllerEnumType.scrollLeft:
+        scrollXY(v as double, fy, onComplete: () => _completeSafely(completer));
+        break;
+
+      case ControllerEnumType.scrollRight:
+        final targetX = _parentWidth - (v as double) - _fWidth;
+        scrollXY(targetX, fy, onComplete: () => _completeSafely(completer));
+        break;
+
+      case ControllerEnumType.scrollBottom:
+        final targetY = _parentHeight - (v as double) - _fHeight;
+        scrollXY(fx, targetY, onComplete: () => _completeSafely(completer));
+        break;
+
+      case ControllerEnumType.scrollTopLeft:
+        final ptTL = v as FPosition<double>;
+        scrollXY(ptTL.x, ptTL.y, onComplete: () => _completeSafely(completer));
+        break;
+
+      case ControllerEnumType.scrollTopRight:
+        final ptTR = v as FPosition<double>;
+        final tx = _parentWidth - ptTR.x - _fWidth;
+        scrollXY(tx, ptTR.y, onComplete: () => _completeSafely(completer));
+        break;
+
+      case ControllerEnumType.scrollBottomLeft:
+        final ptBL = v as FPosition<double>;
+        final ty = _parentHeight - ptBL.y - _fHeight;
+        scrollXY(ptBL.x, ty, onComplete: () => _completeSafely(completer));
+        break;
+
+      case ControllerEnumType.scrollBottomRight:
+        final ptBR = v as FPosition<double>;
+        final txBR = _parentWidth - ptBR.x - _fWidth;
+        final tyBR = _parentHeight - ptBR.y - _fHeight;
+        scrollXY(txBR, tyBR, onComplete: () => _completeSafely(completer));
+        break;
+
+      default:
+        // Unknown command - ignore
+        break;
+    }
+  }
+
+  // Safely complete a completer with optional value while swallowing exceptions (keeps previous behavior)
+  void _completeSafely(Completer<void>? completer, [dynamic value]) {
+    try {
+      if (completer == null) return;
+      if (value != null) {
+        // If a value is provided, try to complete with it
+        // Note: original code completed with a FPosition in setPoint case
+        completer.complete(value);
+      } else {
+        completer.complete();
       }
-      if (type == ControllerEnumType.setDragEnable) {
-        // update params immutably and refresh
-        setState(() => _params = _params.copyWith(isDragEnable: value));
-        return;
-      }
-      if (type == ControllerEnumType.scrollTime) scrollTimeMillis = value;
-      if (type == ControllerEnumType.scrollTop) return scrollY(value);
-      if (type == ControllerEnumType.scrollLeft) return scrollX(value);
-      if (type == ControllerEnumType.scrollRight) return scrollX(_parentWidth - value - _fWidth);
-      if (type == ControllerEnumType.scrollBottom) return scrollY(_parentHeight - value - _fHeight);
-      if (type == ControllerEnumType.scrollTopLeft) return scrollXY(value.y, value.x);
-      if (type == ControllerEnumType.scrollTopRight) {
-        return scrollXY(_parentWidth - value.x - _fWidth, value.y);
-      }
-      if (type == ControllerEnumType.scrollBottomLeft) {
-        return scrollXY(value.x, _parentHeight - value.y - _fHeight);
-      }
-      if (type == ControllerEnumType.scrollBottomRight) {
-        return scrollXY(_parentWidth - value.x - _fWidth, _parentHeight - value.y - _fHeight);
-      }
-    });
+    } catch (_) {}
   }
 
   @override
@@ -136,8 +202,8 @@ class _FloatingViewState extends State<FloatingView>
     return Stack(
       children: [
         Positioned(
-          left: x,
-          top: y,
+          left: fx,
+          top: fy,
           child: AnimatedOpacity(
               opacity: _opacity,
               curve: Curves.easeOut,
@@ -157,16 +223,16 @@ class _FloatingViewState extends State<FloatingView>
   _content() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: (details) => _notifyDown(x, y),
-      onTapCancel: () => _notifyUp(x, y),
+      onTapDown: (details) => _notifyDown(fx, fy),
+      onTapCancel: () => _notifyUp(fx, fy),
       //滑动
       onPanUpdate: (DragUpdateDetails details) {
         if (!_checkStartScroll()) return;
-        x += details.delta.dx;
-        y += details.delta.dy;
+        fx += details.delta.dx;
+        fy += details.delta.dy;
         if (_opacity != _params.dragOpacity) _opacity = _params.dragOpacity;
         _changePosition();
-        _notifyMove(x, y);
+        _notifyMove(fx, fy);
       },
       //滑动结束
       onPanEnd: (DragEndDetails details) {
@@ -204,15 +270,15 @@ class _FloatingViewState extends State<FloatingView>
       _isInitPosition = true;
       return;
     }
-    void _topInit() => y = _floatingData.top ?? _params.marginTop;
+    void _topInit() => fy = _floatingData.top ?? _params.marginTop;
 
-    void _leftInit() => x = _floatingData.left ?? _params.snapToEdgeSpace;
+    void _leftInit() => fx = _floatingData.left ?? _params.snapToEdgeSpace;
 
     void _rightInit() =>
-        x = _parentWidth - (_floatingData.right ?? _params.snapToEdgeSpace) - _fWidth;
+        fx = _parentWidth - (_floatingData.right ?? _params.snapToEdgeSpace) - _fWidth;
 
     void _bottomInit() =>
-        y = _parentHeight - (_floatingData.bottom ?? _params.marginBottom) - _fHeight;
+        fy = _parentHeight - (_floatingData.bottom ?? _params.marginBottom) - _fHeight;
 
     switch (_floatingData.slideType) {
       case FloatingEdgeType.onLeftAndTop:
@@ -232,11 +298,11 @@ class _FloatingViewState extends State<FloatingView>
         _bottomInit();
         break;
       case FloatingEdgeType.onPoint:
-        y = _floatingData.point?.y ?? _params.marginBottom;
-        x = _floatingData.point?.x ?? _params.snapToEdgeSpace;
+        fy = _floatingData.position?.y ?? _params.marginBottom;
+        fx = _floatingData.position?.x ?? _params.snapToEdgeSpace;
         break;
     }
-    _saveCacheData(x, y);
+    _saveCacheData(fx, fy);
     _isInitPosition = true;
   }
 
@@ -250,7 +316,7 @@ class _FloatingViewState extends State<FloatingView>
       _parentWidth = width;
       _parentHeight = height;
       setState(() => _calcNewPositionByRatio());
-      _saveCacheData(x, y);
+      _saveCacheData(fx, fy);
     }
   }
 
@@ -273,7 +339,7 @@ class _FloatingViewState extends State<FloatingView>
         leftBorder[1] = leftBorder[0];
       }
     }
-    x = max(leftBorder[0], min(leftBorder[1], x));
+    fx = max(leftBorder[0], min(leftBorder[1], fx));
     //定义一个上边界
     List<double> topBorder = [_params.marginTop, _parentHeight - _fHeight - _params.marginBottom];
     // 处理无法移动的情况
@@ -284,9 +350,9 @@ class _FloatingViewState extends State<FloatingView>
         topBorder[1] = topBorder[0];
       }
     }
-    y = max(topBorder[0], min(topBorder[1], y));
+    fy = max(topBorder[0], min(topBorder[1], fy));
     setState(() {
-      _saveCacheData(x, y);
+      _saveCacheData(fx, fy);
     });
   }
 
@@ -294,21 +360,21 @@ class _FloatingViewState extends State<FloatingView>
   _animateMovePosition() {
     if (!_params.isSnapToEdge) {
       _recoverOpacity();
-      _saveCacheData(x, y);
+      _saveCacheData(fx, fy);
       _setPositionToRemainRatio();
-      _notifyMoveEnd(x, y);
+      _notifyMoveEnd(fx, fy);
       return;
     }
     double toPositionX = 0;
     double needMoveLength = 0;
 
     void _setPositionToLeft() {
-      needMoveLength = x; //靠左边的距离
+      needMoveLength = fx; //靠左边的距离
       toPositionX = 0 + _params.snapToEdgeSpace; //回到左边缘距离
     }
 
     void _setPositionToRight() {
-      needMoveLength = (_parentWidth - x - _fWidth); //靠右边的距离
+      needMoveLength = (_parentWidth - fx - _fWidth); //靠右边的距离
       toPositionX = _parentWidth - _fWidth - _params.snapToEdgeSpace; //回到右边缘距离
     }
 
@@ -320,7 +386,7 @@ class _FloatingViewState extends State<FloatingView>
         _setPositionToRight();
         break;
       case SnapEdgeType.snapEdgeAuto:
-        double centerX = x + _fWidth / 2.0; //中心点位置
+        double centerX = fx + _fWidth / 2.0; //中心点位置
         (centerX < _parentWidth / 2) ? _setPositionToLeft() : _setPositionToRight();
         break;
     }
@@ -330,13 +396,13 @@ class _FloatingViewState extends State<FloatingView>
     int time = (_params.snapToEdgeSpeed * parent).ceil();
 
     //执行动画
-    animationSlide(x, toPositionX, time, () {
+    animationSlide(fx, toPositionX, time, () {
       //恢复透明度
       _recoverOpacity();
       _setPositionToRemainRatio();
-      _saveCacheData(x, y);
+      _saveCacheData(fx, fy);
       //结束后进行通知
-      _notifyMoveEnd(x, y);
+      _notifyMoveEnd(fx, fy);
     });
   }
 
@@ -362,9 +428,9 @@ class _FloatingViewState extends State<FloatingView>
     void setBySlide() {
       if (_floatingData.slideType == FloatingEdgeType.onRightAndBottom ||
           _floatingData.slideType == FloatingEdgeType.onRightAndTop) {
-        x = _parentWidth - _fWidth - _params.snapToEdgeSpace;
+        fx = _parentWidth - _fWidth - _params.snapToEdgeSpace;
       } else {
-        x = _params.snapToEdgeSpace;
+        fx = _params.snapToEdgeSpace;
       }
     }
 
@@ -381,16 +447,16 @@ class _FloatingViewState extends State<FloatingView>
       setBySlide();
     } else {
       // left position should be offset from snapToEdgeSpace
-      x = _params.snapToEdgeSpace + (_leftToRemainWidthRatio ?? 0) * remainWidth;
+      fx = _params.snapToEdgeSpace + (_leftToRemainWidthRatio ?? 0) * remainWidth;
     }
     if (_params.isSnapToEdge) _calcNewLeftWhenSnapToEdge();
   }
 
   /// 处理吸附在左右两侧的情况
   _calcNewLeftWhenSnapToEdge() {
-    _slideLeft() => x = _params.snapToEdgeSpace;
+    _slideLeft() => fx = _params.snapToEdgeSpace;
 
-    _slideRight() => x = _parentWidth - _fWidth - _params.snapToEdgeSpace;
+    _slideRight() => fx = _parentWidth - _fWidth - _params.snapToEdgeSpace;
 
     switch (_params.snapEdgeType) {
       case SnapEdgeType.snapEdgeLeft:
@@ -401,7 +467,7 @@ class _FloatingViewState extends State<FloatingView>
         break;
       case SnapEdgeType.snapEdgeAuto:
         var centerX = _parentWidth / 2.0; //中心位置
-        ((x + _fWidth / 2) < centerX) ? _slideLeft() : _slideRight();
+        ((fx + _fWidth / 2) < centerX) ? _slideLeft() : _slideRight();
         break;
     }
   }
@@ -410,9 +476,9 @@ class _FloatingViewState extends State<FloatingView>
     void setBySlide() {
       if (_floatingData.slideType == FloatingEdgeType.onLeftAndBottom ||
           _floatingData.slideType == FloatingEdgeType.onRightAndBottom) {
-        y = _parentHeight - _params.marginBottom - _fHeight;
+        fy = _parentHeight - _params.marginBottom - _fHeight;
       } else {
-        y = _params.marginTop;
+        fy = _params.marginTop;
       }
     }
 
@@ -432,7 +498,7 @@ class _FloatingViewState extends State<FloatingView>
       setBySlide();
     } else {
       // 根据剩余高度和距离顶部的高度比,计算新的顶部距离（加上 marginTop 偏移）
-      y = _params.marginTop + (_topToRemainHeightRatio ?? 0) * remainHeight;
+      fy = _params.marginTop + (_topToRemainHeightRatio ?? 0) * remainHeight;
     }
   }
 
@@ -478,7 +544,7 @@ class _FloatingViewState extends State<FloatingView>
       _topToRemainHeightRatio ??= initWhenNoRemainHeight();
     } else {
       //计算顶部距离（相对于 marginTop 的偏移）与剩余高度之比
-      double offsetFromMargin = (y - _params.marginTop).clamp(0.0, remainHeight);
+      double offsetFromMargin = (fy - _params.marginTop).clamp(0.0, remainHeight);
       _topToRemainHeightRatio = offsetFromMargin / remainHeight;
     }
   }
@@ -512,7 +578,7 @@ class _FloatingViewState extends State<FloatingView>
       _leftToRemainWidthRatio ??= initWhenNoRemainWidth();
     } else {
       //计算左侧距离（相对于 snapToEdgeSpace 的偏移）与剩余宽度之比
-      double offsetFromSnap = (x - _params.snapToEdgeSpace).clamp(0.0, remainWidth);
+      double offsetFromSnap = (fx - _params.snapToEdgeSpace).clamp(0.0, remainWidth);
       _leftToRemainWidthRatio = offsetFromSnap / remainWidth;
     }
   }
@@ -542,7 +608,7 @@ class _FloatingViewState extends State<FloatingView>
     setState(() {
       _setFloatingPosition();
       _setPositionToRemainRatio();
-      _saveCacheData(x, y);
+      _saveCacheData(fx, fy);
     });
   }
 
@@ -570,29 +636,29 @@ class _FloatingViewState extends State<FloatingView>
     // 无法完全显示：从起始点角落边缘开始显示
     // 可完全显示，但需要调整：从右下角边缘开始显示
     void _adjustBottom() {
-      double currentBottom = _parentHeight - y - _fHeight;
+      double currentBottom = _parentHeight - fy - _fHeight;
       // 需要向上调整才能完全显示
       if (currentBottom <= _params.marginBottom) {
-        y = _parentHeight - _params.marginBottom - _fHeight;
+        fy = _parentHeight - _params.marginBottom - _fHeight;
       }
     }
 
     void _adjustRight() {
-      double currentRight = _parentWidth - x - _fWidth;
+      double currentRight = _parentWidth - fx - _fWidth;
       // 需要向左调整才能完全显示
       if (currentRight <= _params.snapToEdgeSpace) {
-        x = _parentWidth - _params.snapToEdgeSpace - _fWidth;
+        fx = _parentWidth - _params.snapToEdgeSpace - _fWidth;
       }
     }
 
-    void _topSet() => remainHeight <= 0 ? y = _params.marginTop : _adjustBottom();
+    void _topSet() => remainHeight <= 0 ? fy = _params.marginTop : _adjustBottom();
 
     void _bottomSet() =>
-        remainHeight <= 0 ? y = _parentHeight - _params.marginBottom - _fHeight : _adjustBottom();
+        remainHeight <= 0 ? fy = _parentHeight - _params.marginBottom - _fHeight : _adjustBottom();
 
     void _leftSet() {
       if (remainWidth <= 0) {
-        x = _params.snapToEdgeSpace;
+        fx = _params.snapToEdgeSpace;
       } else {
         _adjustRight();
       }
@@ -600,7 +666,7 @@ class _FloatingViewState extends State<FloatingView>
 
     void _rightSet() {
       if (remainWidth <= 0) {
-        x = _parentWidth - _fWidth - _params.snapToEdgeSpace;
+        fx = _parentWidth - _fWidth - _params.snapToEdgeSpace;
       } else {
         _adjustRight();
       }
@@ -625,7 +691,7 @@ class _FloatingViewState extends State<FloatingView>
         _bottomSet();
         break;
     }
-    _saveCacheData(x, y);
+    _saveCacheData(fx, fy);
   }
 
   ///保存缓存位置
@@ -638,33 +704,35 @@ class _FloatingViewState extends State<FloatingView>
 
   ///设置缓存数据
   _setCacheData() {
-    y = _floatingData.top ?? 0;
-    x = _floatingData.left ?? 0;
+    fy = _floatingData.top ?? 0;
+    fx = _floatingData.left ?? 0;
   }
 
   @override
   void dispose() {
-    super.dispose();
+    _controllerSub?.cancel();
+    _controllerSub = null;
     disposeScrollAnim();
+    super.dispose();
   }
 
   _notifyMove(double x, double y) {
     widget._log.log("移动 X:$x Y:$y");
-    widget._listenerController.notifyTouchMove(Point(x, y));
+    widget._listenerController.notifyTouchMove(FPosition(x, y));
   }
 
   _notifyMoveEnd(double x, double y) {
     widget._log.log("移动结束 X:$x Y:$y");
-    widget._listenerController.notifyTouchMoveEnd(Point(x, y));
+    widget._listenerController.notifyTouchMoveEnd(FPosition(x, y));
   }
 
   _notifyDown(double x, double y) {
     widget._log.log("按下 X:$x Y:$y");
-    widget._listenerController.notifyTouchDown(Point(x, y));
+    widget._listenerController.notifyTouchDown(FPosition(x, y));
   }
 
   _notifyUp(double x, double y) {
     widget._log.log("抬起 X:$x Y:$y");
-    widget._listenerController.notifyTouchUp(Point(x, y));
+    widget._listenerController.notifyTouchUp(FPosition(x, y));
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/animation.dart';
 
 mixin FloatingScrollMixin on TickerProvider {
-  double y = 0; //悬浮窗距屏幕或父组件顶部的距离
-  double x = 0; //悬浮窗距屏幕或父组件左侧的距离
+  double fy = 0; //悬浮窗距屏幕或父组件顶部的距离
+  double fx = 0; //悬浮窗距屏幕或父组件左侧的距离
 
   int scrollTimeMillis = 300; //滑动时间
 
@@ -38,8 +38,7 @@ mixin FloatingScrollMixin on TickerProvider {
     _scrollController.dispose();
   }
 
-
-  animationSlide(double left, double toPositionX, int time, Function completed) {
+  animationSlide(double left, double toPositionX, int time, VoidCallback? completed) {
     // 停止并重用已有 controller，设置时长
     if (_slideController.isAnimating) _slideController.stop();
     _slideController.duration = Duration(milliseconds: time);
@@ -53,11 +52,11 @@ mixin FloatingScrollMixin on TickerProvider {
     }
 
     // tween 从当前 x 到目标位置，确保能从任意起点动画到目标
-    _slideAnimation = Tween(begin: this.x, end: toPositionX * 1.0).animate(_slideController);
+    _slideAnimation = Tween(begin: fx, end: toPositionX * 1.0).animate(_slideController);
     // 回弹动画监听
     _slideListener = () {
-      x = _slideAnimation.value.toDouble();
-      handlerSaveCacheDataAndNotify(x, y);
+      fx = _slideAnimation.value.toDouble();
+      handlerSaveCacheDataAndNotify(fx, fy);
     };
     _slideAnimation.addListener(_slideListener!);
 
@@ -70,7 +69,10 @@ mixin FloatingScrollMixin on TickerProvider {
           } catch (_) {}
           _slideListener = null;
         }
-        completed.call();
+        // 调用外部回调（如果有）
+        try {
+          if (completed != null) completed();
+        } catch (_) {}
         _slideController.removeStatusListener(_statusHandler);
       }
     }
@@ -79,9 +81,9 @@ mixin FloatingScrollMixin on TickerProvider {
     _slideController.forward(from: 0.0);
   }
 
-   scrollXY(double x, double y) {
+  scrollXY(double x, double y, {VoidCallback? onComplete}) {
     // allow animating to zero and ensure we tween from current values to targets
-    if ((this.x != x) || (this.y != y)) {
+    if ((fx != x) || (fy != y)) {
       if (_scrollController.isAnimating) _scrollController.stop();
       _scrollController.duration = Duration(milliseconds: scrollTimeMillis);
 
@@ -94,13 +96,13 @@ mixin FloatingScrollMixin on TickerProvider {
       }
 
       // create animations for x and y driven by the same controller
-      final animY = Tween(begin: this.y, end: y).animate(_scrollController);
-      final animX = Tween(begin: this.x, end: x).animate(_scrollController);
+      final animY = Tween(begin: fy, end: y).animate(_scrollController);
+      final animX = Tween(begin: fx, end: x).animate(_scrollController);
 
       _scrollListener = () {
-        this.y = animY.value.toDouble();
-        this.x = animX.value.toDouble();
-        handlerSaveCacheDataAndNotify(this.x, this.y);
+        fy = animY.value.toDouble();
+        fx = animX.value.toDouble();
+        handlerSaveCacheDataAndNotify(fx, fy);
       };
 
       _scrollController.addListener(_scrollListener!);
@@ -113,6 +115,10 @@ mixin FloatingScrollMixin on TickerProvider {
             } catch (_) {}
             _scrollListener = null;
           }
+          // 调用外部回调（如果传入）
+          try {
+            if (onComplete != null) onComplete();
+          } catch (_) {}
           _scrollController.removeStatusListener(_statusHandler);
         }
       }
@@ -120,21 +126,21 @@ mixin FloatingScrollMixin on TickerProvider {
       _scrollController.addStatusListener(_statusHandler);
       _scrollController.forward(from: 0.0);
     }
-   }
+  }
 
-   scrollX(double left) {
+  scrollX(double left) {
     // allow scrolling to 0 (edge) as well
-    if (left >= 0 && this.x != left) {
-      scrollXY(left, this.y);
+    if (left >= 0 && fx != left) {
+      scrollXY(left, fy);
     }
-   }
+  }
 
-   scrollY(double top) {
+  scrollY(double top) {
     // allow scrolling to 0 (edge) as well
-    if (top >= 0 && this.y != top) {
-      scrollXY(this.x, top);
+    if (top >= 0 && fy != top) {
+      scrollXY(fx, top);
     }
-   }
+  }
 
-   handlerSaveCacheDataAndNotify(double x, double y);
- }
+  handlerSaveCacheDataAndNotify(double x, double y);
+}
