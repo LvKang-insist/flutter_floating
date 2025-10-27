@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_floating/floating/assist/snap_stop_type.dart';
-import 'package:flutter_floating/floating/control/floating_controller.dart';
+import 'package:flutter_floating/floating/control/floating_common_controller.dart';
 import '../assist/point.dart';
 import '../assist/floating_common_params.dart';
 import '../assist/floating_data.dart';
@@ -24,7 +24,7 @@ class FloatingView extends StatefulWidget {
   final FloatingData floatingData;
   final FloatingListenerController _listenerController;
   final FloatingLog _log;
-  final FloatingController _commonControl;
+  final FloatingCommonController _commonControl;
   final FloatingParams params;
 
   const FloatingView(
@@ -190,16 +190,16 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   ///检测是否开启滑动
-  bool _checkStartScroll() => _params.isEnableDrag;
+  bool _checkStartScroll() => _params.isDragEnable;
 
   ///初始位置计算
   initFloatingPosition() {
-    if (_params.isPosCache && (_floatingData.top != null && _floatingData.left != null)) {
+    if (_params.enablePositionCache && (_floatingData.top != null && _floatingData.left != null)) {
       _setCacheData();
       _isInitPosition = true;
       return;
     }
-    void _topInit() => y = _floatingData.top ?? _params.margeTop;
+    void _topInit() => y = _floatingData.top ?? _params.marginTop;
 
     void _leftInit() => x = _floatingData.left ?? _params.snapToEdgeSpace;
 
@@ -207,7 +207,7 @@ class _FloatingViewState extends State<FloatingView>
         x = _parentWidth - (_floatingData.right ?? _params.snapToEdgeSpace) - _fWidth;
 
     void _bottomInit() =>
-        y = _parentHeight - (_floatingData.bottom ?? _params.margeBottom) - _fHeight;
+        y = _parentHeight - (_floatingData.bottom ?? _params.marginBottom) - _fHeight;
 
     switch (_floatingData.slideType) {
       case FloatingEdgeType.onLeftAndTop:
@@ -227,7 +227,7 @@ class _FloatingViewState extends State<FloatingView>
         _bottomInit();
         break;
       case FloatingEdgeType.onPoint:
-        y = _floatingData.point?.y ?? _params.margeBottom;
+        y = _floatingData.point?.y ?? _params.marginBottom;
         x = _floatingData.point?.x ?? _params.snapToEdgeSpace;
         break;
     }
@@ -270,7 +270,7 @@ class _FloatingViewState extends State<FloatingView>
     }
     x = max(leftBorder[0], min(leftBorder[1], x));
     //定义一个上边界
-    List<double> topBorder = [_params.margeTop, _parentHeight - _fHeight - _params.margeBottom];
+    List<double> topBorder = [_params.marginTop, _parentHeight - _fHeight - _params.marginBottom];
     // 处理无法移动的情况
     if (topBorder[1] < topBorder[0]) {
       if (type == FloatingEdgeType.onRightAndBottom || type == FloatingEdgeType.onLeftAndBottom) {
@@ -404,14 +404,14 @@ class _FloatingViewState extends State<FloatingView>
     void setBySlide() {
       if (_floatingData.slideType == FloatingEdgeType.onLeftAndBottom ||
           _floatingData.slideType == FloatingEdgeType.onRightAndBottom) {
-        y = _parentHeight - _params.margeBottom - _fHeight;
+        y = _parentHeight - _params.marginBottom - _fHeight;
       } else {
-        y = _params.margeTop;
+        y = _params.marginTop;
       }
     }
 
     // 可用高度，减去顶部和底部的预留高度
-    double availableHeight = _parentHeight - _params.margeTop - _params.margeBottom;
+    double availableHeight = _parentHeight - _params.marginTop - _params.marginBottom;
     if (availableHeight <= 0) {
       //可用高度小于等于0时，设置在初始位置
       setBySlide();
@@ -457,7 +457,7 @@ class _FloatingViewState extends State<FloatingView>
     }
 
     // 计算可用高度，减去顶部和底部的预留高度
-    double availableHeight = _parentHeight - _params.margeTop - _params.margeBottom;
+    double availableHeight = _parentHeight - _params.marginTop - _params.marginBottom;
     if (availableHeight <= 0) {
       //可用高度小于等于0时，设置比例为初始值
       _topToRemainHeightRatio ??= initWhenNoRemainHeight();
@@ -554,7 +554,7 @@ class _FloatingViewState extends State<FloatingView>
   // 悬浮窗尺寸变化时，根据起始点重新计算坐标
   _setFloatingPosition() {
     // 计算可用高度和宽度
-    double availableHeight = _parentHeight - _params.margeTop - _params.margeBottom;
+    double availableHeight = _parentHeight - _params.marginTop - _params.marginBottom;
     double availableWidth = _parentWidth - _params.snapToEdgeSpace * 2;
     // 计算剩余高度和宽度
     double remainHeight = availableHeight - _fHeight;
@@ -564,8 +564,8 @@ class _FloatingViewState extends State<FloatingView>
     void _adjustBottom() {
       double currentBottom = _parentHeight - y - _fHeight;
       // 需要向上调整才能完全显示
-      if (currentBottom <= _params.margeBottom) {
-        y = _parentHeight - _params.margeBottom - _fHeight;
+      if (currentBottom <= _params.marginBottom) {
+        y = _parentHeight - _params.marginBottom - _fHeight;
       }
     }
 
@@ -577,10 +577,10 @@ class _FloatingViewState extends State<FloatingView>
       }
     }
 
-    void _topSet() => remainHeight <= 0 ? y = _params.margeTop : _adjustBottom();
+    void _topSet() => remainHeight <= 0 ? y = _params.marginTop : _adjustBottom();
 
     void _bottomSet() =>
-        remainHeight <= 0 ? y = _parentHeight - _params.margeBottom - _fHeight : _adjustBottom();
+        remainHeight <= 0 ? y = _parentHeight - _params.marginBottom - _fHeight : _adjustBottom();
 
     void _leftSet() {
       if (remainWidth <= 0) {
@@ -622,7 +622,7 @@ class _FloatingViewState extends State<FloatingView>
 
   ///保存缓存位置
   _saveCacheData(double left, double top) {
-    if (_params.isPosCache) {
+    if (_params.enablePositionCache) {
       _floatingData.left = left;
       _floatingData.top = top;
     }

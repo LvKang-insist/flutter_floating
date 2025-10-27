@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 
-import '../floating.dart';
+import '../floating_overlay.dart';
 
 /// @name：floating_manager
 /// @package：
 /// @author：345 QQ:1831712732
 /// @time：2022/02/11 14:50
-/// @des：[Floating] 管理者
+/// @des：[FloatingOverlay] 管理者
 
 FloatingManager floatingManager = FloatingManager();
 
@@ -17,7 +17,7 @@ class FloatingManager {
 
   factory FloatingManager() => _manager;
 
-  final Map<Object, Floating> _floatingCache = {};
+  final Map<Object, FloatingOverlay> _floatingCache = {};
 
   static TransitionBuilder init({TransitionBuilder? builder}) {
     return (BuildContext context, Widget? child) {
@@ -28,8 +28,8 @@ class FloatingManager {
     };
   }
 
-  ///创建一个可全局管理的 [Floating]
-  Floating createFloating(Object key, Floating floating) {
+  ///创建一个可全局管理的 [FloatingOverlay]
+  FloatingOverlay createFloating(Object key, FloatingOverlay floating) {
     bool contains = _floatingCache.containsKey(key);
     if (!contains) {
       _floatingCache[key] = floating..setLogKey(key.toString());
@@ -37,24 +37,24 @@ class FloatingManager {
     return _floatingCache[key]!;
   }
 
-  ///根据 [key] 拿到对应的 [Floating]
-  Floating getFloating(Object key) {
+  ///根据 [key] 拿到对应的 [FloatingOverlay]
+  FloatingOverlay getFloating(Object key) {
     return _floatingCache[key]!;
   }
 
-  ///查询 [key] 对应的 [Floating] 是否存在
+  ///查询 [key] 对应的 [FloatingOverlay] 是否存在
   bool containsFloating(Object key) {
     return _floatingCache.containsKey(key);
   }
 
-  ///关闭 [key] 对应的 [Floating]
+  ///关闭 [key] 对应的 [FloatingOverlay]
   closeFloating(Object key) {
     var floating = _floatingCache[key];
     floating?.close();
     _floatingCache.remove(key);
   }
 
-  ///关闭所有的 [Floating]
+  ///关闭所有的 [FloatingOverlay]
   closeAllFloating() {
     _floatingCache.forEach((key, value) => value.close());
     _floatingCache.clear();

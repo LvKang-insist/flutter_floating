@@ -76,7 +76,7 @@ I/flutter (24648): Floating_Log 1645091422285 ： 移动 X:342.72727272727275 Y:
 ///[top],[left],[left],[bottom] 对应 [slideType]，
 ///例如设置[slideType]为[FloatingSlideType.onRightAndBottom]，则需要传入[bottom]和[right]
 ///
-///[isPosCache]启用之后当调用之后 [Floating.close] 重新调用 [Floating.open] 后会保持之前的位置
+///[enablePositionCache]启用之后当调用之后 [Floating.close] 重新调用 [Floating.open] 后会保持之前的位置
 ///[isSnapToEdge]是否自动吸附边缘，默认为 true ，请注意，移动默认是有透明动画的，如需要关闭透明度动画，
 ///请修改 [moveOpacity]为 1
 ///[slideTopHeight] 滑动边界控制，可滑动到顶部的距离
@@ -90,7 +90,7 @@ Floating(
   double? right,
   double? bottom,
   double moveOpacity = 0.3,
-  bool isPosCache = true,
+  bool enablePositionCache = true,
   bool isShowLog = true,
   bool isSnapToEdge = true,
   this.slideTopHeight = 0,

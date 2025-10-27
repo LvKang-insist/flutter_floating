@@ -1,10 +1,11 @@
 import 'package:example/button_widget.dart';
+import 'package:example/game.dart';
 import 'package:example/page/internal_floating_page.dart';
 import 'package:example/page/page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating/floating/assist/floating_common_params.dart';
 import 'package:flutter_floating/floating/assist/floating_edge_type.dart';
-import 'package:flutter_floating/floating/floating.dart';
+import 'package:flutter_floating/floating/floating_overlay.dart';
 import 'package:flutter_floating/floating/manager/floating_manager.dart';
 import 'floating_icon.dart';
 
@@ -36,16 +37,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late Floating floatingOne = floatingManager.createFloating(
+  late FloatingOverlay floating = floatingManager.createFloating(
     "1",
-    Floating(
+    FloatingOverlay(
       const FloatingIcon(),
-      slideType: FloatingEdgeType.onRightAndBottom,
-      left: 0,
-      params: FloatingParams(
-        snapToEdgeSpace: 30,
-      ),
-      bottom: 100,
+      slideType: FloatingEdgeType.onRightAndTop,
+      right: 0,
+      params: FloatingParams(),
+      top: 100,
     ),
   );
 
@@ -54,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      floatingOne.open(context);
+      floating.open(context);
     });
   }
 
@@ -69,8 +68,6 @@ class _MyHomePageState extends State<MyHomePage> {
       return const InternalFloatingPage();
     }));
   }
-
-  var isOpen = false;
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +90,9 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               ButtonWidget("跳转页面", () => _startCustomPage()),
               ButtonWidget("页面内悬浮窗", () => _startInternalFollowPage()),
+              GameControllerWidget(
+                onDown: (){},
+              ),
             ],
           ),
         ),

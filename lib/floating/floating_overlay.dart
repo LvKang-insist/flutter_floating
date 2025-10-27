@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_floating/floating/assist/point.dart';
 import 'package:flutter_floating/floating/base/floating_base.dart';
-import 'package:flutter_floating/floating/control/floating_controller.dart';
+import 'package:flutter_floating/floating/control/floating_common_controller.dart';
 import 'package:flutter_floating/floating/control/floating_listener_controller.dart';
 import 'package:flutter_floating/floating/listener/event_listener.dart';
 import 'package:flutter_floating/floating/utils/floating_log.dart';
@@ -16,14 +16,14 @@ import 'assist/floating_edge_type.dart';
 /// @time：2022/02/10 14:23
 /// @des：
 
-class Floating implements FloatingBase {
+class FloatingOverlay implements FloatingBase {
   late OverlayEntry _overlayEntry;
 
   late FloatingView _floatingView;
 
   late FloatingData _floatingData;
 
-  late FloatingController _commonControl;
+  late FloatingCommonController _commonControl;
 
   late FloatingListenerController _listenerController;
 
@@ -44,7 +44,7 @@ class Floating implements FloatingBase {
   ///
 
   ///
-  Floating(
+  FloatingOverlay(
     Widget child, {
     FloatingEdgeType slideType = FloatingEdgeType.onRightAndBottom,
     double? top,
@@ -58,7 +58,7 @@ class Floating implements FloatingBase {
         FloatingData(slideType, left: left, right: right, top: top, bottom: bottom, point: point);
     _params = params ?? FloatingParams();
     _log = FloatingLog(_params.isShowLog);
-    _commonControl = FloatingController();
+    _commonControl = FloatingCommonController();
     _listenerController = FloatingListenerController();
     _floatingView = FloatingView(
       child,
@@ -116,8 +116,8 @@ class Floating implements FloatingBase {
 
   ///是否允许拖动悬浮窗
   ///[isScroll] true 表示启动，否则关闭
-  isEnableDrag(bool isScroll) {
-    _params.isEnableDrag = isScroll;
+  setDragEnable(bool isScroll) {
+    _params.isDragEnable = isScroll;
   }
 
   ///设置 [FloatingLog] 标识

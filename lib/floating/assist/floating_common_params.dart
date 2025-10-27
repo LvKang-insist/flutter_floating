@@ -2,13 +2,13 @@ import 'snap_stop_type.dart';
 
 class FloatingParams {
   ///是否在调用 [Floating.open] 时，保持上一次 [Floating.close] 前的位置
-  bool isPosCache = true;
+  bool enablePositionCache = true;
 
   ///是否自动吸附左右边缘，默认为 true
   bool isSnapToEdge = true;
 
   ///是否允许拖动悬浮窗，默认为 true
-  bool isEnableDrag = true;
+  bool isDragEnable = true;
 
   ///是否打印日志，默认为 false
   bool isShowLog = false;
@@ -18,12 +18,12 @@ class FloatingParams {
   double dragOpacity = 0.3;
 
   ///拖动范围限制，与顶部的最小距离（可设为负数）
-  double margeTop = 0;
+  double marginTop = 0;
 
   ///拖动范围限制，与底部的最小距离（可设为负数）
-  double margeBottom = 0;
+  double marginBottom = 0;
 
-  ///吸附后回弹至与边缘的距离，不开启吸附则用于范围限制（可设为负数）
+  ///吸附后回弹至与边缘的距离，正值限制在内、负值允许超出。
   double snapToEdgeSpace = 0;
 
   ///吸附边缘的速度，默认 250，越大越快
@@ -35,13 +35,13 @@ class FloatingParams {
 
 
   FloatingParams({
-    this.isPosCache = true,
+    this.enablePositionCache = true,
     this.isSnapToEdge = true,
-    this.isEnableDrag = true,
+    this.isDragEnable = true,
     this.isShowLog = false,
     this.dragOpacity = 0.3,
-    this.margeTop = 0,
-    this.margeBottom = 0,
+    this.marginTop = 0,
+    this.marginBottom = 0,
     this.snapToEdgeSpace = 0,
     this.snapToEdgeSpeed = 250,
     this.snapEdgeType = SnapEdgeType.snapEdgeAuto,

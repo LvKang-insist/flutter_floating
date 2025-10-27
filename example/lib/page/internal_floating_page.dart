@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_floating/floating/assist/floating_common_params.dart';
 import 'package:flutter_floating/floating/assist/floating_edge_type.dart';
-import 'package:flutter_floating/floating/floating.dart';
+import 'package:flutter_floating/floating/floating_overlay.dart';
 
 class InternalFloatingPage extends StatefulWidget {
   const InternalFloatingPage({Key? key}) : super(key: key);
@@ -11,7 +11,7 @@ class InternalFloatingPage extends StatefulWidget {
 }
 
 class _InternalFloatingPageState extends State<InternalFloatingPage> {
-  var floating = Floating(
+  var floating = FloatingOverlay(
     Container(
       width: 100,
       height: 100,
@@ -21,9 +21,9 @@ class _InternalFloatingPageState extends State<InternalFloatingPage> {
     params: FloatingParams(
       isShowLog: false,
       isSnapToEdge: true,
-      isPosCache: true,
+      enablePositionCache: true,
       dragOpacity: 1,
-      margeBottom: 100,
+      marginBottom: 100,
     ),
   );
 
