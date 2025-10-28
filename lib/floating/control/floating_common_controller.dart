@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math';
+import 'package:flutter_floating/floating/assist/fposition.dart';
 
 import 'controller_type.dart';
 
@@ -24,20 +24,6 @@ class FloatingCommonController {
     } catch (_) {}
   }
 
-  /// 获取 Floating 位置（异步实现）：发送 setPoint 命令并等待视图返回 Point
-  Future<Point<double>?> currentPosition() async {
-    final c = Completer<dynamic>();
-    final cmd = _ControllerCommand(ControllerEnumType.setPoint, completer: c);
-    try {
-      _commandController.add(cmd);
-    } catch (_) {
-      c.complete(null);
-    }
-    if (!_hasListeners) c.complete(null);
-    final res = await c.future;
-    return res is Point<double> ? res : null;
-  }
-
   bool get _hasListeners => !_commandController.isClosed && _commandController.hasListener;
 
   // 内部帮助方法：发送一个带 void completer 的命令并返回 Future<void>
@@ -54,6 +40,20 @@ class FloatingCommonController {
     return c.future;
   }
 
+  /// 获取 Floating 位置（异步实现）：发送 setPoint 命令并等待视图返回 Point
+  Future<FPosition<double>?> currentPosition() async {
+    final c = Completer<dynamic>();
+    final cmd = _ControllerCommand(ControllerEnumType.getPoint, completer: c);
+    try {
+      _commandController.add(cmd);
+    } catch (_) {
+      c.complete(null);
+    }
+    if (!_hasListeners) c.complete(null);
+    final res = await c.future;
+    return res is FPosition<double> ? res : null;
+  }
+
   /// 设置隐藏（true 隐藏）
   Future<void> setFloatingHide(bool isHide) =>
       _emitCommand(ControllerEnumType.setEnableHide, value: isHide);
@@ -62,12 +62,17 @@ class FloatingCommonController {
   Future<void> setDragEnable(bool enable) =>
       _emitCommand(ControllerEnumType.setDragEnable, value: enable);
 
-  /// 刷新 Floating（同步命令）
-  void refresh() => _commandController.add(_ControllerCommand(ControllerEnumType.refresh));
+  /// 设置大小（同步命令）
+  void setWAndH(double width, double height) => _commandController
+      .add(_ControllerCommand(ControllerEnumType.sizeChange, value: FPosition(width, height)));
 
   /// 设置滑动时间，单位毫秒（同步命令）
   void scrollTime(int millis) =>
       _commandController.add(_ControllerCommand(ControllerEnumType.scrollTime, value: millis));
+
+  /// 从当前位置偏移[offset]的位置滑动
+  Future<void> scrollBy(double x, double y) =>
+      _emitCommand(ControllerEnumType.scrollBy, value: FPosition(x, y));
 
   /// 从当前滑动到距离顶部[top]的位置
   Future<void> scrollTop(double top) => _emitCommand(ControllerEnumType.scrollTop, value: top);
@@ -85,19 +90,19 @@ class FloatingCommonController {
 
   /// 从当前滑动到距离顶部[top]和左边[left]的位置
   Future<void> scrollTopLeft(double top, double left) =>
-      _emitCommand(ControllerEnumType.scrollTopLeft, value: Point<double>(left, top));
+      _emitCommand(ControllerEnumType.scrollTopLeft, value: FPosition<double>(left, top));
 
   /// 从当前滑动到距离顶部[top]和右边[right]的位置
   Future<void> scrollTopRight(double top, double right) =>
-      _emitCommand(ControllerEnumType.scrollTopRight, value: Point<double>(right, top));
+      _emitCommand(ControllerEnumType.scrollTopRight, value: FPosition<double>(right, top));
 
   /// 从当前滑动到距离底部[bottom]和左边[left]的位置
   Future<void> scrollBottomLeft(double bottom, double left) =>
-      _emitCommand(ControllerEnumType.scrollBottomLeft, value: Point<double>(left, bottom));
+      _emitCommand(ControllerEnumType.scrollBottomLeft, value: FPosition<double>(left, bottom));
 
   /// 从当前滑动到距离底部[bottom]和右边[right]的位置
   Future<void> scrollBottomRight(double bottom, double right) =>
-      _emitCommand(ControllerEnumType.scrollBottomRight, value: Point<double>(right, bottom));
+      _emitCommand(ControllerEnumType.scrollBottomRight, value: FPosition<double>(right, bottom));
 }
 
 /// _ControllerCommand：控制器向视图发送的内部命令对象（私有）

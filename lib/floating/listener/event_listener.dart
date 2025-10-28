@@ -1,5 +1,5 @@
 
-import 'package:flutter_floating/floating/assist/point.dart';
+import 'package:flutter_floating/floating/assist/fposition.dart';
 
 /// @name：FloatingListener
 /// @package：

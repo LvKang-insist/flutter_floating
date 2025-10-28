@@ -7,16 +7,14 @@ import 'package:flutter/material.dart';
 /// @des：
 ///
 class ButtonWidget extends StatelessWidget {
-  final Function callback;
+  final VoidCallback callback;
   final EdgeInsets? margin;
   final String text;
   final double? height;
   final Color? background;
   final FontWeight? fontWeight;
 
-  const ButtonWidget(this.text, this.callback,
-      {this.margin, this.height, this.background = Colors.blue, this.fontWeight, Key? key})
-      : super(key: key);
+  const ButtonWidget({required this.text, required this.callback, this.margin, this.height, this.background = Colors.blue, this.fontWeight, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,15 +22,14 @@ class ButtonWidget extends StatelessWidget {
       margin: margin ?? const EdgeInsets.all(16),
       height: height ?? 44,
       child: InkWell(
+        onTap: callback,
         child: Container(
-          child: Text(text,
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: fontWeight)),
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: background),
           width: double.infinity,
           alignment: Alignment.center,
           height: 44,
+          child: Text(text, style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: fontWeight)),
         ),
-        onTap: () => callback(),
       ),
     );
   }

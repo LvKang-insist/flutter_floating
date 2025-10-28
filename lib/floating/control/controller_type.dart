@@ -1,9 +1,9 @@
 enum ControllerEnumType {
-  ///刷新
-  refresh,
+  ///大小变化
+  sizeChange,
 
   ///设置位置
-  setPoint,
+  getPoint,
 
   ///设置隐藏
   setEnableHide,
@@ -13,6 +13,9 @@ enum ControllerEnumType {
 
   ///滑动时间
   scrollTime,
+
+  ///从当前位置偏移[offset]的位置滑动
+  scrollBy,
 
   ///从当前滑动到距离顶部[top]的位置
   scrollTop,

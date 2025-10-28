@@ -5,7 +5,7 @@ import 'package:flutter_floating/floating/view/floating_view.dart';
 import 'assist/floating_common_params.dart';
 import 'assist/floating_data.dart';
 import 'assist/floating_edge_type.dart';
-import 'assist/point.dart';
+import 'assist/fposition.dart';
 import 'base/floating_base.dart';
 import 'control/floating_common_controller.dart';
 import 'control/floating_listener_controller.dart';
@@ -18,7 +18,7 @@ import 'listener/event_listener.dart';
 /// @des：
 
 class FloatingOverlay implements FloatingBase {
-  late OverlayEntry _overlayEntry;
+  OverlayEntry? _overlayEntry;
 
   late FloatingView _floatingView;
 
@@ -33,17 +33,22 @@ class FloatingOverlay implements FloatingBase {
   late FloatingLog _log;
   String logKey = "";
 
-  ///是否真正显示
+  ///是否真正显示（OverlayEntry 是否已插入）
   bool get isShowing => _isShowing;
   bool _isShowing = false;
 
+  /// 是否处于隐藏（Offstage/不可见）状态，仅在 Overlay 已插入时生效
+  bool _isHidden = false;
+
+  /// 对外可读的隐藏状态
+  bool get isHidden => _isHidden;
+
   ///[child]需要悬浮的 widget
   ///
-  ///[top],[left],[left],[bottom],[point] 对应 [slideType]，设置与起始点的距离
+  ///[top],[left],[left],[bottom],[position] 对应 [slideType]，设置与起始点的距离
   ///例如设置[slideType]为[FloatingEdgeType.onRightAndBottom]，则需要传入[bottom]和[right]
-  ///设置 [slideType]为 [FloatingEdgeType.onPoint] 则需要传入 [point]
-  ///
-
+  ///设置 [slideType]为 [FloatingEdgeType.onPoint] 则需要传入 [position]
+  /// [logKey]设置 [FloatingLog] 标识
   ///
   FloatingOverlay(
     Widget child, {
@@ -52,14 +57,16 @@ class FloatingOverlay implements FloatingBase {
     double? left,
     double? right,
     double? bottom,
-    FPosition<double>? point,
+    String? logKey,
+    FPosition<double>? position,
     FloatingParams? params,
     FloatingCommonController? controller,
   }) {
     _floatingData = FloatingData(slideType,
-        left: left, right: right, top: top, bottom: bottom, position: point);
+        left: left, right: right, top: top, bottom: bottom, position: position);
     _params = params ?? const FloatingParams();
-    _log = FloatingLog(_params.isShowLog);
+    _log = FloatingLog(_params.isShowLog, logKey ?? '');
+    // 记录 controller 所有权：若外部未传入 controller，则由本实例创建并负责释放
     _commonControl = controller ?? FloatingCommonController();
     _listenerController = FloatingListenerController();
     _floatingView = FloatingView(
@@ -73,45 +80,66 @@ class FloatingOverlay implements FloatingBase {
   }
 
   ///打开悬浮窗
-  ///此方法配合 [close]方法进行使用，调用[close]之后在调用此方法会丢失 Floating 状态
-  ///否则请使用 [hideFloating] 进行隐藏，使用 [showFloating]进行显示，而不是使用 [close]
+  ///此方法配合 [close]方法进行使用
   open(BuildContext context) {
     if (_isShowing) return;
+    final OverlayState? overlay = Overlay.of(context);
+    if (overlay == null) {
+      _log.log('open: Overlay.of(context) returned null, cannot insert floating overlay.');
+      return;
+    }
     _overlayEntry = OverlayEntry(builder: (context) {
       return _floatingView;
     });
-    Overlay.of(context).insert(_overlayEntry);
+    overlay.insert(_overlayEntry!);
     _isShowing = true;
+    _isHidden = false;
     _notifyOpen();
   }
 
   ///关闭悬浮窗
   close() {
     if (!_isShowing) return;
-    _overlayEntry.remove();
+    try {
+      _overlayEntry?.remove();
+      // 避免保留对已移除 OverlayEntry 的引用
+      _overlayEntry = null;
+    } catch (_) {}
     _isShowing = false;
+    _isHidden = false;
     _notifyClose();
-    // dispose internally created controller to avoid leaks
+    // 注意：close() 仅移除 Overlay（保留状态与资源），若需要释放 controller/listeners
+    // 请在确定不再使用时调用 dispose() 方法。这样可以避免 close 导致外部 controller 被误释放。
+  }
+
+  /// 释放内部资源：清空监听器并释放内部创建的 controller（如果有）
+  ///
+  /// 注意：此方法会释放由本实例创建的 controller（如果构造时没有传入外部 controller），
+  /// 调用者在调用后不应再使用本 FloatingOverlay 或其 controller。
+  void dispose() {
+    try {
+      clearFloatingListeners();
+    } catch (_) {}
     try {
       _commonControl.dispose();
     } catch (_) {}
   }
 
-  ///隐藏悬浮窗，保留其状态
-  ///只有在悬浮窗显示的状态下才可以使用，否则调用无效
-  hideFloating() {
+  ///隐藏悬浮窗，保留其状态（不移除 OverlayEntry）
+  ///只有在悬浮窗已经插入 Overlay 的状态下才可以使用，否则调用无效
+  hide() {
     if (!_isShowing) return;
     _commonControl.setFloatingHide(true);
-    _isShowing = false;
+    _isHidden = true;
     _notifyHideFloating();
   }
 
-  ///显示悬浮窗，恢复其状态
+  ///显示悬浮窗，恢复其状态（仅当 Overlay 已插入时有效）
   ///只有在悬浮窗是隐藏的状态下才可以使用，否则调用无效
-  showFloating() {
-    if (_isShowing) return;
+  show() {
+    if (!_isShowing) return;
     _commonControl.setFloatingHide(false);
-    _isShowing = true;
+    _isHidden = false;
     _notifyShowFloating();
   }
 
@@ -120,9 +148,14 @@ class FloatingOverlay implements FloatingBase {
     _listenerController.addFloatingListener(listener);
   }
 
-  /// 设置 [FloatingLog] 标识
-  setLogKey(String key) {
-    _log.logKey = key;
+  /// 移除已添加的监听器
+  bool removeFloatingListener(FloatingEventListener listener) {
+    return _listenerController.removeFloatingListener(listener);
+  }
+
+  /// 清空所有监听器
+  void clearFloatingListeners() {
+    _listenerController.clearListeners();
   }
 
   _notifyOpen() {

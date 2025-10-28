@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import "package:vector_math/vector_math_64.dart" show Vector3;
 
 enum Direction {
   center,
@@ -175,7 +176,7 @@ class _ButtonPainter extends CustomPainter {
       final ring = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = max(1.0, r * 0.12)
-        ..color = color.withOpacity(0.6);
+        ..color = color.withAlpha((0.6 * 255).round());
       canvas.drawCircle(center, r + r * 0.08, ring);
       return;
     }
@@ -226,16 +227,16 @@ class _ButtonPainter extends CustomPainter {
 
     // 旋转 path
     final Matrix4 m = Matrix4.identity()
-      ..translate(center.dx, center.dy)
+      ..translateByVector3(Vector3(center.dx, center.dy, 0))
       ..rotateZ(angle)
-      ..translate(-center.dx, -center.dy);
+      ..translateByVector3(Vector3(-center.dx, -center.dy, 0));
     final rotated = path.transform(m.storage);
 
     canvas.drawPath(rotated, paint);
 
     // 添加内阴影（简易）
     final shadow = Paint()
-      ..color = Colors.black.withOpacity(0.15)
+      ..color = Colors.black.withAlpha((0.15 * 255).round())
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
     canvas.drawPath(rotated.shift(const Offset(0, 1)), shadow);
   }

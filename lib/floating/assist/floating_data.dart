@@ -1,4 +1,4 @@
-import 'package:flutter_floating/floating/assist/point.dart';
+import 'package:flutter_floating/floating/assist/fposition.dart';
 
 import 'floating_edge_type.dart';
 

@@ -5,7 +5,7 @@ import 'package:flutter/scheduler.dart';
 import '../assist/floating_common_params.dart';
 import '../assist/floating_data.dart';
 import '../assist/floating_edge_type.dart';
-import '../assist/point.dart';
+import '../assist/fposition.dart';
 import '../assist/snap_stop_type.dart';
 import '../control/controller_type.dart';
 import '../control/floating_common_controller.dart';
@@ -42,9 +42,15 @@ class FloatingView extends StatefulWidget {
 }
 
 class _FloatingViewState extends State<FloatingView>
-    with TickerProviderStateMixin, FloatingScrollMixin {
+    with TickerProviderStateMixin, FloatingScrollMixin, WidgetsBindingObserver {
   final _floatingGlobalKey = GlobalKey();
   RenderBox? renderBox;
+
+  // 最近一次感知到的父容器/窗口尺寸，用于比较变化
+  Size? _lastParentSize;
+
+  // 尺寸变化去抖计时器（避免短时间内频繁 setState 导致性能问题）
+  Timer? _resizeDebounce;
 
   late FloatingData _floatingData;
 
@@ -75,26 +81,45 @@ class _FloatingViewState extends State<FloatingView>
   late Widget _contentWidget;
 
   bool isHide = false;
-  StreamSubscription? _controllerSub;
 
-  initListener() {
-    // subscribe to controller commands stream (private _commands, accessible within the same library part)
-    _controllerSub = widget._commonControl.commands.listen(_onControllerCommand);
+  // 订阅控制器命令流的订阅对象，记录为 dynamic 类型以兼容私有命令类
+  StreamSubscription<dynamic>? _controllerSub;
+
+  // 节流：移动通知上次发送时间戳（毫秒）
+  int _lastNotifyAt = 0;
+
+  // 节流间隔（毫秒），从参数中读取
+  late int _notifyThrottleMs;
+
+  // 初始化对外控制器命令的监听
+  void initListener() {
+    try {
+      // 订阅控制器命令流，出现错误时记录日志但不抛出
+      _controllerSub = widget._commonControl.commands.listen(
+        _onControllerCommand,
+        onError: (e, s) => widget._log.log('控制器命令流错误: $e\n$s'),
+      );
+    } catch (e, s) {
+      // 将 stackTrace 一并记录，便于排查订阅失败原因
+      widget._log.log('订阅控制器命令失败: $e\n$s');
+    }
   }
 
-  // Handle commands from the controller in a single place to improve readability
-  void _onControllerCommand(cmd) {
-    final v = cmd.value;
-    final Completer<void>? completer = cmd.completer;
+  // 统一处理来自控制器的命令，减少重复代码
+  void _onControllerCommand(dynamic cmd) {
+    if (cmd == null) return;
+    final dynamic v = cmd.value;
+    final Completer<dynamic>? completer = cmd.completer as Completer<dynamic>?;
     final type = cmd.type;
 
     switch (type) {
-      case ControllerEnumType.refresh:
-        refresh();
+      case ControllerEnumType.sizeChange:
+        final size = v as FPosition<double>;
+        sizeChange(size.x, size.y);
         break;
 
-      case ControllerEnumType.setPoint:
-        _completeSafely(completer, FPosition(fx, fy));
+      case ControllerEnumType.getPoint:
+        _completeSafely(completer, FPosition<double>(fx, fy));
         break;
 
       case ControllerEnumType.setEnableHide:
@@ -111,6 +136,19 @@ class _FloatingViewState extends State<FloatingView>
         scrollTimeMillis = v as int;
         break;
 
+      case ControllerEnumType.scrollBy:
+        final offset = v as FPosition<double>;
+        final targetX = fx + offset.x;
+        final targetY = fy + offset.y;
+        if (targetX < 0 ||
+            targetY < 0 ||
+            targetX > (_parentWidth - _fWidth) ||
+            targetY > (_parentHeight - _fHeight)) {
+          _completeSafely(completer);
+          return;
+        }
+        scrollXY(targetX, targetY, onComplete: () => _completeSafely(completer));
+        break;
       case ControllerEnumType.scrollTop:
         scrollXY(fx, v as double, onComplete: () => _completeSafely(completer));
         break;
@@ -154,23 +192,25 @@ class _FloatingViewState extends State<FloatingView>
         break;
 
       default:
-        // Unknown command - ignore
+        // 未知命令，忽略
         break;
     }
   }
 
-  // Safely complete a completer with optional value while swallowing exceptions (keeps previous behavior)
-  void _completeSafely(Completer<void>? completer, [dynamic value]) {
+  // 安全地完成 completer：避免重复完成导致异常
+  void _completeSafely(Completer<dynamic>? completer, [dynamic value]) {
+    if (completer == null) return;
     try {
-      if (completer == null) return;
+      if (completer.isCompleted) return;
       if (value != null) {
-        // If a value is provided, try to complete with it
-        // Note: original code completed with a FPosition in setPoint case
         completer.complete(value);
       } else {
         completer.complete();
       }
-    } catch (_) {}
+    } catch (e) {
+      // 记录完成时的异常，保持原有行为（吞掉异常）但记录方便排查
+      widget._log.log('completer 完成时异常: $e');
+    }
   }
 
   @override
@@ -178,6 +218,10 @@ class _FloatingViewState extends State<FloatingView>
     super.initState();
     _floatingData = widget.floatingData;
     _params = widget.params;
+    // 从参数读取节流间隔
+    _notifyThrottleMs = (_params.notifyThrottleMs <= 0) ? 0 : _params.notifyThrottleMs;
+    // 注册 window metrics 监听（用于捕获桌面窗口 resize / 系统 UI 变化等）
+    WidgetsBinding.instance.addObserver(this);
     initScrollAnim();
     initListener();
     _contentWidget = _content();
@@ -186,6 +230,32 @@ class _FloatingViewState extends State<FloatingView>
       _setFloatingSize();
       setState(() => initFloatingPosition());
       _setPositionToRemainRatio();
+    });
+  }
+
+  @override
+  void didChangeMetrics() {
+    // 在下一帧读取 MediaQuery 的 size（safe，避免在非 build 阶段直接依赖 context）
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final size = MediaQuery.of(context).size;
+      _maybeHandleParentSize(size);
+    });
+  }
+
+  // 处理父容器/窗口尺寸变化（带去抖）
+  void _maybeHandleParentSize(Size newSize) {
+    if (_lastParentSize != null && _lastParentSize == newSize) return;
+    _lastParentSize = newSize;
+    _resizeDebounce?.cancel();
+    _resizeDebounce = Timer(const Duration(milliseconds: 50), () {
+      if (!mounted) return;
+      setState(() {
+        _parentWidth = newSize.width;
+        _parentHeight = newSize.height;
+        _calcNewPositionByRatio();
+        _saveCacheData(fx, fy);
+      });
     });
   }
 
@@ -210,8 +280,22 @@ class _FloatingViewState extends State<FloatingView>
               duration: const Duration(milliseconds: 200),
               child: Offstage(
                 offstage: isHide,
-                child: OrientationBuilder(builder: (context, orientation) {
-                  _checkParentSizeChange();
+                child: LayoutBuilder(builder: (context, constraints) {
+                  // 使用 constraints 或 MediaQuery 作为有效尺寸来源
+                  final effectiveSize =
+                      (constraints.maxWidth.isFinite && constraints.maxHeight.isFinite)
+                          ? Size(constraints.maxWidth, constraints.maxHeight)
+                          : MediaQuery.of(context).size;
+                  // 如果检测到父尺寸发生变化，通过 post frame callback 安全地处理变化（避免在 build 中直接 setState）
+                  if (_lastParentSize == null ||
+                      _lastParentSize!.width != effectiveSize.width ||
+                      _lastParentSize!.height != effectiveSize.height) {
+                    // 在下一帧通过 _maybeHandleParentSize 执行实际的更新与 debounce。
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted) return;
+                      _maybeHandleParentSize(effectiveSize);
+                    });
+                  }
                   return Opacity(child: _contentWidget, opacity: _isInitPosition ? 1 : 0);
                 }),
               )),
@@ -238,7 +322,6 @@ class _FloatingViewState extends State<FloatingView>
       onPanEnd: (DragEndDetails details) {
         if (!_checkStartScroll()) return;
         _changePosition();
-        //停止后靠边操作
         _animateMovePosition();
       },
       //滑动取消
@@ -248,14 +331,7 @@ class _FloatingViewState extends State<FloatingView>
       },
       child: Container(
         key: _floatingGlobalKey,
-        child: NotificationListener(
-            onNotification: (notification) {
-              if (notification is SizeChangedLayoutNotification) {
-                _checkFloatingSizeChange();
-              }
-              return false;
-            },
-            child: SizeChangedLayoutNotifier(child: widget.child)),
+        child: widget.child,
       ),
     );
   }
@@ -304,20 +380,6 @@ class _FloatingViewState extends State<FloatingView>
     }
     _saveCacheData(fx, fy);
     _isInitPosition = true;
-  }
-
-  ///判断屏幕尺寸变化
-  _checkParentSizeChange() {
-    //如果屏幕宽高为0，直接退出
-    if (_parentWidth == 0 || _parentHeight == 0) return;
-    var width = MediaQuery.of(context).size.width;
-    var height = MediaQuery.of(context).size.height;
-    if (width != _parentWidth || height != _parentHeight) {
-      _parentWidth = width;
-      _parentHeight = height;
-      setState(() => _calcNewPositionByRatio());
-      _saveCacheData(fx, fy);
-    }
   }
 
   ///边界判断
@@ -404,11 +466,6 @@ class _FloatingViewState extends State<FloatingView>
       //结束后进行通知
       _notifyMoveEnd(fx, fy);
     });
-  }
-
-  refresh() {
-    //停止后靠边操作
-    // _animateMovePosition();
   }
 
   ///恢复透明度
@@ -598,15 +655,18 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   ///检测悬浮窗尺寸变化
-  _checkFloatingSizeChange() {
-    renderBox ??= _floatingGlobalKey.currentContext?.findRenderObject() as RenderBox?;
-    var w = renderBox?.size.width ?? _defaultWidth;
-    var h = renderBox?.size.height ?? _defaultHeight;
-    if (w == _fWidth && h == _fHeight) return;
+  ///由于 NotificationListener 监听到宽高改变是在 build 之后(即宽高已经改变才通知)，
+  ///此时计算位置导致的结果是：悬浮窗会先以新宽高渲染一次，然后再跳到正确位置，体验不好。
+  ///所以这里由外部在宽高改变时调用，从而避免上述问题。
+  sizeChange(var newW, var newH) {
+    if (newW == _fWidth && newH == _fHeight) return;
     _setParentSize();
-    _setFloatingSize();
+    double oldW = _fWidth;
+    double oldH = _fHeight;
+    _fWidth = newW;
+    _fHeight = newH;
     setState(() {
-      _setFloatingPosition();
+      _setFloatingPosition(oldW, oldH);
       _setPositionToRemainRatio();
       _saveCacheData(fx, fy);
     });
@@ -626,7 +686,7 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   // 悬浮窗尺寸变化时，根据起始点重新计算坐标
-  _setFloatingPosition() {
+  _setFloatingPosition(double oldW, double oldH) {
     // 计算可用高度和宽度
     double availableHeight = _parentHeight - _params.marginTop - _params.marginBottom;
     double availableWidth = _parentWidth - _params.snapToEdgeSpace * 2;
@@ -636,18 +696,26 @@ class _FloatingViewState extends State<FloatingView>
     // 无法完全显示：从起始点角落边缘开始显示
     // 可完全显示，但需要调整：从右下角边缘开始显示
     void _adjustBottom() {
-      double currentBottom = _parentHeight - fy - _fHeight;
-      // 需要向上调整才能完全显示
-      if (currentBottom <= _params.marginBottom) {
-        fy = _parentHeight - _params.marginBottom - _fHeight;
+      if (fy == _parentHeight - oldH - _params.marginBottom) {
+        fy = _parentHeight - _fHeight - _params.marginBottom;
+        return;
+      }
+      if ((fy + oldH / 2) > (_parentHeight / 2)) {
+        double currentBottom = _parentHeight - fy - oldH;
+        fy = _parentHeight - currentBottom - _fHeight;
+        return;
       }
     }
 
     void _adjustRight() {
-      double currentRight = _parentWidth - fx - _fWidth;
-      // 需要向左调整才能完全显示
-      if (currentRight <= _params.snapToEdgeSpace) {
-        fx = _parentWidth - _params.snapToEdgeSpace - _fWidth;
+      if (fx == _parentWidth - oldW - _params.snapToEdgeSpace) {
+        fx = _parentWidth - _fWidth - _params.snapToEdgeSpace;
+        return;
+      }
+      if ((fx + oldW / 2) > (_parentWidth / 2)) {
+        double currentRight = _parentWidth - fx - oldW;
+        fx = _parentWidth - currentRight - _fWidth;
+        return;
       }
     }
 
@@ -710,13 +778,30 @@ class _FloatingViewState extends State<FloatingView>
 
   @override
   void dispose() {
-    _controllerSub?.cancel();
-    _controllerSub = null;
+    // 移除 window metrics 监听
+    try {
+      WidgetsBinding.instance.removeObserver(this);
+    } catch (_) {}
+    // 取消可能的 debounce 计时器
+    _resizeDebounce?.cancel();
+    // 取消控制器订阅，记录可能的异常
+    if (_controllerSub != null) {
+      try {
+        _controllerSub!.cancel();
+      } catch (e) {
+        widget._log.log('取消控制器订阅时异常: $e');
+      }
+      _controllerSub = null;
+    }
     disposeScrollAnim();
     super.dispose();
   }
 
   _notifyMove(double x, double y) {
+    // 节流高频移动回调，避免外层 listener 被频繁触发导致性能问题
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (now - _lastNotifyAt < _notifyThrottleMs) return;
+    _lastNotifyAt = now;
     widget._log.log("移动 X:$x Y:$y");
     widget._listenerController.notifyTouchMove(FPosition(x, y));
   }

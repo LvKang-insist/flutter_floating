@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import '../floating_overlay.dart';
 
-
 /// @name：floating_manager
 /// @package：
 /// @author：345 QQ:1831712732
@@ -32,7 +31,7 @@ class FloatingManager {
   FloatingOverlay createFloating(Object key, FloatingOverlay floating) {
     bool contains = _floatingCache.containsKey(key);
     if (!contains) {
-      _floatingCache[key] = floating..setLogKey(key.toString());
+      _floatingCache[key] = floating;
     }
     return _floatingCache[key]!;
   }

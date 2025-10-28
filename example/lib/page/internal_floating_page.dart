@@ -4,7 +4,7 @@ import 'package:flutter_floating/floating/assist/floating_edge_type.dart';
 import 'package:flutter_floating/floating/floating_overlay.dart';
 
 class InternalFloatingPage extends StatefulWidget {
-  const InternalFloatingPage({Key? key}) : super(key: key);
+  const InternalFloatingPage({super.key});
 
   @override
   State<InternalFloatingPage> createState() => _InternalFloatingPageState();

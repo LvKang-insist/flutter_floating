@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// @name：log
 /// @package：
 /// @author：345 QQ:1831712732
@@ -5,8 +7,8 @@
 /// @des：
 
 class FloatingLog {
-  FloatingLog(bool isShowLog) {
-    init(isShowLog);
+  FloatingLog(bool isShowLog,String logKey) {
+    init(isShowLog,logKey);
   }
 
   static const _separator = "=";
@@ -15,12 +17,12 @@ class FloatingLog {
   static const _title = "Floating_Log";
   static const int _limitLength = 800;
   static String _startLine = "$_split$_title$_split";
-  static String _endLine = "$_split$_separator$_separator$_separator$_split";
   bool isShowLog = false;
   String logKey = "";
 
-  void init(bool isShowLog) {
+  void init(bool isShowLog, String logKey) {
     this.isShowLog = isShowLog;
+    this.logKey = logKey;
     _startLine = "$_split$_title$_split";
     var endLineStr = StringBuffer();
     var cnCharReg = RegExp("[\u4e00-\u9fa5]");
@@ -30,7 +32,6 @@ class FloatingLog {
       }
       endLineStr.write(_separator);
     }
-    _endLine = endLineStr.toString();
   }
 
   log(dynamic obj) {
@@ -43,7 +44,7 @@ class FloatingLog {
   }
 
   void _log(String msg) {
-    print("$_title $logKey ： $msg");
+    debugPrint("$_title $logKey ： $msg");
   }
 
   void _splitLog(String msg) {
@@ -52,12 +53,12 @@ class FloatingLog {
     for (var index = 0; index < msg.length; index++) {
       outStr.write(msg[index]);
       if (index % _limitLength == 0 && index != 0) {
-        print(outStr);
+        debugPrint(outStr.toString());
         outStr.clear();
         var lastIndex = index + 1;
         if (msg.length - lastIndex < _limitLength) {
           var remainderStr = msg.substring(lastIndex, msg.length);
-          print(remainderStr);
+          debugPrint(remainderStr);
           break;
         }
       }

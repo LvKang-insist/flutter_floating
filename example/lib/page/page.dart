@@ -8,10 +8,10 @@ import 'package:flutter_floating/floating/manager/floating_manager.dart';
 /// @des：
 
 class CustomPage extends StatefulWidget {
-  const CustomPage({Key? key}) : super(key: key);
+  const CustomPage({super.key});
 
   @override
-  _CustomPageState createState() => _CustomPageState();
+  State<CustomPage> createState() => _CustomPageState();
 }
 
 class _CustomPageState extends State<CustomPage> {

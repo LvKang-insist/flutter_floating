@@ -32,6 +32,9 @@ class FloatingParams {
   ///拖动后吸附在哪一侧
   final SnapEdgeType snapEdgeType;
 
+  /// 移动通知节流间隔（毫秒），默认 16ms（约 60fps）
+  final int notifyThrottleMs;
+
   const FloatingParams({
     this.enablePositionCache = true,
     this.isSnapToEdge = true,
@@ -43,6 +46,7 @@ class FloatingParams {
     this.snapToEdgeSpace = 0,
     this.snapToEdgeSpeed = 250,
     this.snapEdgeType = SnapEdgeType.snapEdgeAuto,
+    this.notifyThrottleMs = 16,
   });
 
   FloatingParams copyWith({
@@ -56,6 +60,7 @@ class FloatingParams {
     double? snapToEdgeSpace,
     int? snapToEdgeSpeed,
     SnapEdgeType? snapEdgeType,
+    int? notifyThrottleMs,
   }) {
     return FloatingParams(
       enablePositionCache: enablePositionCache ?? this.enablePositionCache,
@@ -68,6 +73,7 @@ class FloatingParams {
       snapToEdgeSpace: snapToEdgeSpace ?? this.snapToEdgeSpace,
       snapToEdgeSpeed: snapToEdgeSpeed ?? this.snapToEdgeSpeed,
       snapEdgeType: snapEdgeType ?? this.snapEdgeType,
+      notifyThrottleMs: notifyThrottleMs ?? this.notifyThrottleMs,
     );
   }
 }
