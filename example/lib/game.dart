@@ -1,3 +1,4 @@
+// dart
 import 'package:flutter/material.dart';
 import 'dart:math';
 import "package:vector_math/vector_math_64.dart" show Vector3;
@@ -33,6 +34,16 @@ class GameControllerWidget extends StatelessWidget {
   final DirectionCallback onDownLeft;
   final DirectionCallback onDownRight;
 
+  // 为除 center 外增加的双击回调
+  final DirectionCallback? onUpDoubleTap;
+  final DirectionCallback? onDownDoubleTap;
+  final DirectionCallback? onLeftDoubleTap;
+  final DirectionCallback? onRightDoubleTap;
+  final DirectionCallback? onUpLeftDoubleTap;
+  final DirectionCallback? onUpRightDoubleTap;
+  final DirectionCallback? onDownLeftDoubleTap;
+  final DirectionCallback? onDownRightDoubleTap;
+
   const GameControllerWidget({
     super.key,
     this.size = 200,
@@ -48,9 +59,17 @@ class GameControllerWidget extends StatelessWidget {
     this.onUpRight,
     this.onDownLeft,
     this.onDownRight,
+    this.onUpDoubleTap,
+    this.onDownDoubleTap,
+    this.onLeftDoubleTap,
+    this.onRightDoubleTap,
+    this.onUpLeftDoubleTap,
+    this.onUpRightDoubleTap,
+    this.onDownLeftDoubleTap,
+    this.onDownRightDoubleTap,
   });
 
-  Widget _cell(Direction dir, DirectionCallback cb) {
+  Widget _cell(Direction dir, DirectionCallback cb, DirectionCallback? doubleTapCb) {
     return Center(
       child: DirectionButton(
         size: buttonSize,
@@ -58,6 +77,7 @@ class GameControllerWidget extends StatelessWidget {
         highlightColor: highlightColor,
         direction: dir,
         onTap: cb,
+        onDoubleTap: doubleTapCb,
       ),
     );
   }
@@ -74,9 +94,9 @@ class GameControllerWidget extends StatelessWidget {
             height: cell,
             child: Row(
               children: [
-                SizedBox(width: cell, child: _cell(Direction.upLeft, onUpLeft)),
-                SizedBox(width: cell, child: _cell(Direction.up, onUp)),
-                SizedBox(width: cell, child: _cell(Direction.upRight, onUpRight)),
+                SizedBox(width: cell, child: _cell(Direction.upLeft, onUpLeft, onUpLeftDoubleTap)),
+                SizedBox(width: cell, child: _cell(Direction.up, onUp, onUpDoubleTap)),
+                SizedBox(width: cell, child: _cell(Direction.upRight, onUpRight, onUpRightDoubleTap)),
               ],
             ),
           ),
@@ -84,9 +104,9 @@ class GameControllerWidget extends StatelessWidget {
             height: cell,
             child: Row(
               children: [
-                SizedBox(width: cell, child: _cell(Direction.left, onLeft)),
-                SizedBox(width: cell, child: _cell(Direction.center, onCenter)),
-                SizedBox(width: cell, child: _cell(Direction.right, onRight)),
+                SizedBox(width: cell, child: _cell(Direction.left, onLeft, onLeftDoubleTap)),
+                SizedBox(width: cell, child: _cell(Direction.center, onCenter, null)), // center 无双击
+                SizedBox(width: cell, child: _cell(Direction.right, onRight, onRightDoubleTap)),
               ],
             ),
           ),
@@ -94,9 +114,9 @@ class GameControllerWidget extends StatelessWidget {
             height: cell,
             child: Row(
               children: [
-                SizedBox(width: cell, child: _cell(Direction.downLeft, onDownLeft)),
-                SizedBox(width: cell, child: _cell(Direction.down, onDown)),
-                SizedBox(width: cell, child: _cell(Direction.downRight, onDownRight)),
+                SizedBox(width: cell, child: _cell(Direction.downLeft, onDownLeft, onDownLeftDoubleTap)),
+                SizedBox(width: cell, child: _cell(Direction.down, onDown, onDownDoubleTap)),
+                SizedBox(width: cell, child: _cell(Direction.downRight, onDownRight, onDownRightDoubleTap)),
               ],
             ),
           ),
@@ -112,6 +132,7 @@ class DirectionButton extends StatefulWidget {
   final Color highlightColor;
   final Direction direction;
   final VoidCallback? onTap;
+  final VoidCallback? onDoubleTap;
 
   const DirectionButton({
     super.key,
@@ -120,18 +141,82 @@ class DirectionButton extends StatefulWidget {
     required this.highlightColor,
     required this.direction,
     this.onTap,
+    this.onDoubleTap,
   });
 
   @override
   State<DirectionButton> createState() => _DirectionButtonState();
 }
 
-class _DirectionButtonState extends State<DirectionButton> {
+class _DirectionButtonState extends State<DirectionButton> with SingleTickerProviderStateMixin {
   bool _pressed = false;
+
+  late final AnimationController _animController;
+  late final Animation<double> _scaleAnim;
+  late final Animation<double> _opacityAnim;
 
   void _setPressed(bool v) {
     if (_pressed == v) return;
+    // update pressed state
     setState(() => _pressed = v);
+    // When pressed, pause/stop the hint animation to reduce visual clutter.
+    // When released, resume the animation only if the button supports double-tap.
+    if (v) {
+      if (_animController.isAnimating) _animController.stop();
+    } else {
+      if (widget.onDoubleTap != null && !_animController.isAnimating) {
+        _animController.repeat();
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Create a two-pulse animation to hint "double-tap"
+    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+
+    // scale does two short pulses per cycle
+    _scaleAnim = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25).chain(CurveTween(curve: Curves.easeOut)), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 1.25, end: 0.9).chain(CurveTween(curve: Curves.easeIn)), weight: 15),
+      TweenSequenceItem(tween: ConstantTween(0.9), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 0.9, end: 1.18).chain(CurveTween(curve: Curves.easeOut)), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 1.18, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 15),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 20),
+    ]).animate(_animController);
+
+    // opacity pulses alongside scale to emphasize the double pulse
+    _opacityAnim = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.7, end: 1.0).chain(CurveTween(curve: Curves.easeOut)), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.6).chain(CurveTween(curve: Curves.easeIn)), weight: 15),
+      TweenSequenceItem(tween: ConstantTween(0.6), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 0.6, end: 0.95).chain(CurveTween(curve: Curves.easeOut)), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 0.95, end: 0.7).chain(CurveTween(curve: Curves.easeIn)), weight: 15),
+      TweenSequenceItem(tween: ConstantTween(0.7), weight: 20),
+    ]).animate(_animController);
+
+    if (widget.onDoubleTap != null) {
+      _animController.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant DirectionButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If double-tap availability changed, start/stop the animation accordingly.
+    // Don't auto-start if the button is currently pressed (to avoid visual jump).
+    if (oldWidget.onDoubleTap == null && widget.onDoubleTap != null) {
+      if (!_pressed) _animController.repeat();
+    } else if (oldWidget.onDoubleTap != null && widget.onDoubleTap == null) {
+      _animController.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
   }
 
   @override
@@ -143,14 +228,60 @@ class _DirectionButtonState extends State<DirectionButton> {
         widget.onTap?.call();
       },
       onTapCancel: () => _setPressed(false),
+      // use double-tap for the new secondary action
+      onDoubleTap: () {
+        // visual feedback: briefly show pressed state
+        _setPressed(true);
+        // schedule releasing pressed state on next frame
+        WidgetsBinding.instance.addPostFrameCallback((_) => _setPressed(false));
+        widget.onDoubleTap?.call();
+      },
       child: SizedBox(
         width: widget.size,
         height: widget.size,
-        child: CustomPaint(
-          painter: _ButtonPainter(
-            color: _pressed ? widget.highlightColor : widget.color,
-            direction: widget.direction,
-          ),
+        // Use a Stack so we can overlay a small long-press indicator when available
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            CustomPaint(
+              painter: _ButtonPainter(
+                color: _pressed ? widget.highlightColor : widget.color,
+                direction: widget.direction,
+              ),
+              size: Size(widget.size, widget.size),
+            ),
+            // If this button supports double-tap, show a small animated '2×' indicator in the top-right
+            if (widget.onDoubleTap != null)
+              Positioned(
+                top: max(2.0, widget.size * 0.06),
+                right: max(2.0, widget.size * 0.06),
+                child: ScaleTransition(
+                  scale: _scaleAnim,
+                  child: FadeTransition(
+                    opacity: _opacityAnim,
+                    child: Container(
+                      width: widget.size * 0.22,
+                      height: widget.size * 0.22,
+                      decoration: BoxDecoration(
+                        // avoid deprecated withOpacity; use withAlpha for a stable color value
+                        color: Colors.black.withAlpha((0.6 * 255).round()),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      // show '2×' to clearly indicate double-tap
+                      child: Text(
+                        '2×',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: widget.size * 0.12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

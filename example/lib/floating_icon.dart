@@ -20,7 +20,6 @@ class FloatingIcon extends StatefulWidget {
 }
 
 class _FloatingIconState extends State<FloatingIcon> {
-  String curState = "";
 
   @override
   void initState() {
@@ -28,28 +27,28 @@ class _FloatingIconState extends State<FloatingIcon> {
     var one = floatingManager.getFloating('1');
     var listener = FloatingEventListener()
       ..openListener = () {
-        setState(() => curState = "打开");
+         com.content.value = "打开";
       }
       ..closeListener = () {
-        setState(() => curState = "关闭");
+         com.content.value = "关闭";
       }
       ..hideFloatingListener = () {
-        setState(() => curState = "隐藏");
+         com.content.value = "隐藏";
       }
       ..showFloatingListener = () {
-        setState(() => curState = "显示");
+         com.content.value = "显示";
       }
       ..downListener = (point) {
-        setState(() => curState = "按下 x:${point.x} -- y:${point.y}");
+         com.content.value = "按下 x:${point.x.toInt()}-y:${point.y.toInt()}";
       }
       ..upListener = (point) {
-        setState(() => curState = "抬起 x:${point.x} -- y:${point.y}");
+         com.content.value = "抬起 x:${point.x.toInt()}-y:${point.y.toInt()}";
       }
       ..moveListener = (point) {
-        setState(() => curState = "移动中 x:${point.x} -- y:${point.y}");
+         com.content.value = "移动中 x:${point.x.toInt()}-y:${point.y.toInt()}";
       }
       ..moveEndListener = (point) {
-        setState(() => curState = "移动结束 x:${point.x} -- y:${point.y}");
+         com.content.value = "移动结束 x:${point.x.toInt()}-y:${point.y.toInt()}";
       };
     // WidgetsBinding.instance.addPostFrameCallback((v) {
     // });
@@ -60,24 +59,19 @@ class _FloatingIconState extends State<FloatingIcon> {
   Widget build(BuildContext context) {
     return Obx(() {
       return Container(
-        // duration: const Duration(milliseconds: 300),
         alignment: Alignment.center,
         height: com.wh.value,
         width: com.wh.value,
         decoration:
             BoxDecoration(color: Colors.tealAccent, borderRadius: BorderRadius.circular(20)),
         child: Text(
-          '',
+          com.content.value,
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: 13,
             color: Colors.black,
           ),
         ),
       );
     });
-    // return Container(
-    //   color: Colors.amberAccent,
-    //   child: const Icon(Icons.add_photo_alternate, size: 70),
-    // );
   }
 }

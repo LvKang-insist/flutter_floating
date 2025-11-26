@@ -9,6 +9,18 @@ import 'package:flutter/animation.dart';
 mixin FloatingScrollMixin on TickerProvider {
   double fy = 0; //悬浮窗距屏幕或父组件顶部的距离
   double fx = 0; //悬浮窗距屏幕或父组件左侧的距离
+  // double _fx = 0; // 私有存储
+  // double get fx => _fx;
+  // set fx(double value) {
+  //   _fx = value;
+  //   try {
+  //     // 获取当前堆栈并限制输出行数（这里取前 10 行）
+  //     final full = StackTrace.current.toString();
+  //     final lines = full.split('\n');
+  //     final snippet = lines.take(10).join('\n');
+  //     print('fx set: $value\n$snippet');
+  //   } catch (_) {}
+  // }
 
   int scrollTimeMillis = 300; // 滑动时间（毫秒），用于 scrollXY 的默认时长
 
@@ -56,6 +68,13 @@ mixin FloatingScrollMixin on TickerProvider {
   animationSlide(double left, double toPositionX, int time, VoidCallback? completed) {
     // 停止并重用已有 controller，设置时长
     if (_slideController.isAnimating) _slideController.stop();
+    if (fx == toPositionX) {
+      // 位置相同则直接回调完成
+      try {
+        if (completed != null) completed();
+      } catch (_) {}
+      return;
+    }
     _slideController.duration = Duration(milliseconds: time);
 
     // 关键保护：如果时长为 0 或负数，不要调用 .forward()，因为在 Flutter 内部这会触发

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import '../assist/floating_common_params.dart';
 import '../assist/floating_data.dart';
@@ -12,6 +13,41 @@ import '../control/floating_common_controller.dart';
 import '../control/floating_listener_controller.dart';
 import '../utils/floating_log.dart';
 import 'floating_scroll_mixin.dart';
+
+/// Small RenderObject-based widget to detect child's layout size changes.
+/// It calls [onChange] when the child's size changes between layouts.
+typedef OnWidgetSizeChange = void Function(Size size);
+
+class MeasureSize extends SingleChildRenderObjectWidget {
+  final OnWidgetSizeChange onChange;
+
+  const MeasureSize({Key? key, required Widget child, required this.onChange})
+      : super(key: key, child: child);
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderMeasureSize(onChange);
+
+  @override
+  void updateRenderObject(BuildContext context, covariant _RenderMeasureSize renderObject) {
+    renderObject.onChange = onChange;
+  }
+}
+
+class _RenderMeasureSize extends RenderProxyBox {
+  _RenderMeasureSize(this.onChange);
+
+  OnWidgetSizeChange onChange;
+  Size? _oldSize;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final newSize = child?.size ?? Size.zero;
+    if (_oldSize == newSize) return;
+    _oldSize = newSize;
+    onChange(newSize);
+  }
+}
 
 /// @name：floating
 /// @package：
@@ -108,89 +144,109 @@ class _FloatingViewState extends State<FloatingView>
   // 统一处理来自控制器的命令，减少重复代码
   void _onControllerCommand(dynamic cmd) {
     if (cmd == null) return;
-    final dynamic v = cmd.value;
+    final dynamic value = cmd.value;
     final Completer<dynamic>? completer = cmd.completer as Completer<dynamic>?;
     final type = cmd.type;
+    // 辅助方法：根据偏移量计算约束后的目标位置
+    FPosition<double> constraintEdge(FPosition<double> offset) {
+      var targetX = fx + offset.x;
+      var targetY = fy + offset.y;
+      if (targetX < 0 + _params.snapToEdgeSpace) targetX = 0 + _params.snapToEdgeSpace;
+      if (targetX > _parentWidth - _fWidth - _params.snapToEdgeSpace) {
+        targetX = _parentWidth - _fWidth - _params.snapToEdgeSpace;
+      }
+      if (targetY < 0 + _params.marginTop) targetY = 0 + _params.marginTop;
+      if (targetY > _parentHeight - _fHeight - _params.marginBottom) {
+        targetY = _parentHeight - _fHeight - _params.marginBottom;
+      }
+      return FPosition<double>(targetX, targetY);
+    }
+
+    // 辅助方法：切换吸附边缘距离
+    scrollSnapToEdgeSpaceToggle({required VoidCallback completed}) {
+      var space = _params.snapToEdgeSpace;
+      if (space == 0) completed();
+      if (space == 0) return;
+      if (fx == space) return scrollXY(0, fy, onComplete: completed);
+      if (fx == 0) return scrollXY(space, fy, onComplete: completed);
+      if (fx == _parentWidth - _fWidth - space) {
+        return scrollXY(_parentWidth - _fWidth, fy, onComplete: completed);
+      }
+      if (fx == _parentWidth - _fWidth) {
+        return scrollXY(_parentWidth - _fWidth - space, fy, onComplete: completed);
+      }
+    }
 
     switch (type) {
       case ControllerEnumType.sizeChange:
-        final size = v as FPosition<double>;
+        final size = value as FPosition<double>;
         sizeChange(size.x, size.y);
         break;
-
       case ControllerEnumType.getPoint:
         _completeSafely(completer, FPosition<double>(fx, fy));
         break;
-
       case ControllerEnumType.setEnableHide:
-        setState(() => isHide = v as bool);
+        setState(() => isHide = value as bool);
         _completeSafely(completer);
         break;
-
       case ControllerEnumType.setDragEnable:
-        setState(() => _params = _params.copyWith(isDragEnable: v as bool));
+        setState(() => _params = _params.copyWith(isDragEnable: value as bool));
         _completeSafely(completer);
         break;
-
-      case ControllerEnumType.scrollTime:
-        scrollTimeMillis = v as int;
+      case ControllerEnumType.setSnapToEdgeSpace:
+        _params = _params.copyWith(snapToEdgeSpace: value as double);
+        _animateMovePosition(completed: () => _completeSafely(completer));
         break;
-
+      case ControllerEnumType.getSnapToEdgeSpace:
+        _completeSafely(completer, _params.snapToEdgeSpace);
+        break;
+      case ControllerEnumType.autoEdge:
+        _animateMovePosition(completed: () => _completeSafely(completer));
+        break;
+      case ControllerEnumType.scrollTime:
+        scrollTimeMillis = value as int;
+        break;
       case ControllerEnumType.scrollBy:
-        final offset = v as FPosition<double>;
-        final targetX = fx + offset.x;
-        final targetY = fy + offset.y;
-        if (targetX < 0 ||
-            targetY < 0 ||
-            targetX > (_parentWidth - _fWidth) ||
-            targetY > (_parentHeight - _fHeight)) {
-          _completeSafely(completer);
-          return;
-        }
-        scrollXY(targetX, targetY, onComplete: () => _completeSafely(completer));
+        final offset = constraintEdge(value as FPosition<double>);
+        scrollXY(offset.x, offset.y, onComplete: () => _completeSafely(completer));
+        break;
+      case ControllerEnumType.scrollSnapToEdgeSpaceToggle:
+        scrollSnapToEdgeSpaceToggle(completed: () => _completeSafely(completer));
         break;
       case ControllerEnumType.scrollTop:
-        scrollXY(fx, v as double, onComplete: () => _completeSafely(completer));
+        scrollXY(fx, value as double, onComplete: () => _completeSafely(completer));
         break;
-
       case ControllerEnumType.scrollLeft:
-        scrollXY(v as double, fy, onComplete: () => _completeSafely(completer));
+        scrollXY(value as double, fy, onComplete: () => _completeSafely(completer));
         break;
-
       case ControllerEnumType.scrollRight:
-        final targetX = _parentWidth - (v as double) - _fWidth;
+        final targetX = _parentWidth - (value as double) - _fWidth;
         scrollXY(targetX, fy, onComplete: () => _completeSafely(completer));
         break;
-
       case ControllerEnumType.scrollBottom:
-        final targetY = _parentHeight - (v as double) - _fHeight;
+        final targetY = _parentHeight - (value as double) - _fHeight;
         scrollXY(fx, targetY, onComplete: () => _completeSafely(completer));
         break;
-
       case ControllerEnumType.scrollTopLeft:
-        final ptTL = v as FPosition<double>;
+        final ptTL = value as FPosition<double>;
         scrollXY(ptTL.x, ptTL.y, onComplete: () => _completeSafely(completer));
         break;
-
       case ControllerEnumType.scrollTopRight:
-        final ptTR = v as FPosition<double>;
+        final ptTR = value as FPosition<double>;
         final tx = _parentWidth - ptTR.x - _fWidth;
         scrollXY(tx, ptTR.y, onComplete: () => _completeSafely(completer));
         break;
-
       case ControllerEnumType.scrollBottomLeft:
-        final ptBL = v as FPosition<double>;
+        final ptBL = value as FPosition<double>;
         final ty = _parentHeight - ptBL.y - _fHeight;
         scrollXY(ptBL.x, ty, onComplete: () => _completeSafely(completer));
         break;
-
       case ControllerEnumType.scrollBottomRight:
-        final ptBR = v as FPosition<double>;
+        final ptBR = value as FPosition<double>;
         final txBR = _parentWidth - ptBR.x - _fWidth;
         final tyBR = _parentHeight - ptBR.y - _fHeight;
         scrollXY(txBR, tyBR, onComplete: () => _completeSafely(completer));
         break;
-
       default:
         // 未知命令，忽略
         break;
@@ -225,10 +281,12 @@ class _FloatingViewState extends State<FloatingView>
     initScrollAnim();
     initListener();
     _contentWidget = _content();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setParentSize();
       _setFloatingSize();
       setState(() => initFloatingPosition());
+      setState(() => _isInitPosition = true);
       _setPositionToRemainRatio();
     });
   }
@@ -286,15 +344,22 @@ class _FloatingViewState extends State<FloatingView>
                       (constraints.maxWidth.isFinite && constraints.maxHeight.isFinite)
                           ? Size(constraints.maxWidth, constraints.maxHeight)
                           : MediaQuery.of(context).size;
-                  // 如果检测到父尺寸发生变化，通过 post frame callback 安全地处理变化（避免在 build 中直接 setState）
-                  if (_lastParentSize == null ||
-                      _lastParentSize!.width != effectiveSize.width ||
-                      _lastParentSize!.height != effectiveSize.height) {
-                    // 在下一帧通过 _maybeHandleParentSize 执行实际的更新与 debounce。
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (!mounted) return;
-                      _maybeHandleParentSize(effectiveSize);
-                    });
+                  //未初始化位置时，记录父尺寸
+                  if (_isInitPosition == false) {
+                    _lastParentSize = effectiveSize;
+                    _parentWidth = effectiveSize.width;
+                    _parentHeight = effectiveSize.height;
+                  } else {
+                    // 如果检测到父尺寸发生变化，通过 post frame callback 安全地处理变化（避免在 build 中直接 setState）
+                    if (_lastParentSize == null ||
+                        _lastParentSize!.width != effectiveSize.width ||
+                        _lastParentSize!.height != effectiveSize.height) {
+                      // 在下一帧通过 _maybeHandleParentSize 执行实际的更新与 debounce。
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (!mounted) return;
+                        _maybeHandleParentSize(effectiveSize);
+                      });
+                    }
                   }
                   return Opacity(child: _contentWidget, opacity: _isInitPosition ? 1 : 0);
                 }),
@@ -331,7 +396,15 @@ class _FloatingViewState extends State<FloatingView>
       },
       child: Container(
         key: _floatingGlobalKey,
-        child: widget.child,
+        child: MeasureSize(
+          child: widget.child,
+          onChange: (size) {
+            if (!_isInitPosition) return;
+            if (size.width == _fWidth && size.height == _fHeight) return;
+            if (!mounted) return;
+            sizeChange(size.width, size.height);
+          },
+        ),
       ),
     );
   }
@@ -343,7 +416,6 @@ class _FloatingViewState extends State<FloatingView>
   initFloatingPosition() {
     if (_params.enablePositionCache && (_floatingData.top != null && _floatingData.left != null)) {
       _setCacheData();
-      _isInitPosition = true;
       return;
     }
     void _topInit() => fy = _floatingData.top ?? _params.marginTop;
@@ -379,7 +451,6 @@ class _FloatingViewState extends State<FloatingView>
         break;
     }
     _saveCacheData(fx, fy);
-    _isInitPosition = true;
   }
 
   ///边界判断
@@ -419,7 +490,7 @@ class _FloatingViewState extends State<FloatingView>
   }
 
   ///中线回弹动画
-  _animateMovePosition() {
+  _animateMovePosition({SnapEdgeType? type, VoidCallback? completed}) {
     if (!_params.isSnapToEdge) {
       _recoverOpacity();
       _saveCacheData(fx, fy);
@@ -440,7 +511,7 @@ class _FloatingViewState extends State<FloatingView>
       toPositionX = _parentWidth - _fWidth - _params.snapToEdgeSpace; //回到右边缘距离
     }
 
-    switch (_params.snapEdgeType) {
+    switch (type ?? _params.snapEdgeType) {
       case SnapEdgeType.snapEdgeLeft:
         _setPositionToLeft();
         break;
@@ -465,6 +536,7 @@ class _FloatingViewState extends State<FloatingView>
       _saveCacheData(fx, fy);
       //结束后进行通知
       _notifyMoveEnd(fx, fy);
+      completed?.call();
     });
   }
 

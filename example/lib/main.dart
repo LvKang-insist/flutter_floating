@@ -36,17 +36,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late FloatingOverlay floating = floatingManager.createFloating(
+  FloatingOverlay floating = floatingManager.createFloating(
     "1",
     FloatingOverlay(
       const FloatingIcon(),
       slideType: FloatingEdgeType.onRightAndTop,
       right: 0,
-      params: FloatingParams(snapToEdgeSpace: -20),
+      // params: FloatingParams(snapToEdgeSpace: -20),
       top: 100,
     ),
   );
   late FloatingCommonController controller = floating.controller;
+
+  var canDrag = true;
 
   @override
   void initState() {
@@ -100,6 +102,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     ButtonWidget(
                       text: '显示/隐藏',
                       callback: () => floating.isHidden ? floating.show() : floating.hide(),
+                    ),
+                    ButtonWidget(
+                      text: '允许拖动开/关',
+                      callback: () => {
+                        canDrag = !canDrag,
+                        controller.setDragEnable(canDrag),
+                      },
                     )
                   ],
                 )),
@@ -111,8 +120,25 @@ class _MyHomePageState extends State<MyHomePage> {
                       text: '放大/缩小',
                       callback: () {
                         var v = com.wh.value == 100 ? 150.0 : 100.0;
-                        com.wh.value = v;
                         controller.setWAndH(v, v);
+                        com.wh.value = v;
+                      },
+                    ),
+                    ButtonWidget(
+                      text: '吸边距离修改',
+                      callback: () async {
+                        var space = await controller.getSnapToEdgeSpace();
+                        if (space > 60) {
+                          controller.setSnapToEdgeSpace(-30);
+                        } else {
+                          controller.setSnapToEdgeSpace(space + 15);
+                        }
+                      },
+                    ),
+                    ButtonWidget(
+                      text: '吸边距离切换',
+                      callback: () {
+                        controller.scrollSnapToEdgeSpaceToggle();
                       },
                     ),
                   ],
@@ -125,6 +151,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   GameControllerWidget buildGameControllerWidget() {
     return GameControllerWidget(
+      size: 180,
+      onCenter: () => controller.autoSnapEdge(),
       onDown: () => controller.scrollBy(0, 30),
       onUp: () => controller.scrollBy(0, -30),
       onLeft: () => controller.scrollBy(-30, 0),
@@ -133,6 +161,14 @@ class _MyHomePageState extends State<MyHomePage> {
       onDownRight: () => controller.scrollBy(30, 30),
       onUpLeft: () => controller.scrollBy(-30, -30),
       onUpRight: () => controller.scrollBy(30, -30),
+      onDownDoubleTap: () => controller.scrollBottom(50),
+      onUpDoubleTap: () => controller.scrollTop(50),
+      onLeftDoubleTap: () => controller.scrollLeft(50),
+      onRightDoubleTap: () => controller.scrollRight(50),
+      onDownLeftDoubleTap: () => controller.scrollBottomLeft(50, 50),
+      onDownRightDoubleTap: () => controller.scrollBottomRight(50, 50),
+      onUpLeftDoubleTap: () => controller.scrollTopLeft(50, 50),
+      onUpRightDoubleTap: () => controller.scrollTopRight(50, 50),
     );
   }
 

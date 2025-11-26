@@ -28,8 +28,6 @@ class FloatingOverlay implements FloatingBase {
 
   late FloatingListenerController _listenerController;
 
-  late FloatingParams _params;
-
   late FloatingLog _log;
   String logKey = "";
 
@@ -64,15 +62,15 @@ class FloatingOverlay implements FloatingBase {
   }) {
     _floatingData = FloatingData(slideType,
         left: left, right: right, top: top, bottom: bottom, position: position);
-    _params = params ?? const FloatingParams();
-    _log = FloatingLog(_params.isShowLog, logKey ?? '');
+    var param = params ?? const FloatingParams();
+    _log = FloatingLog(param.isShowLog, logKey ?? '');
     // 记录 controller 所有权：若外部未传入 controller，则由本实例创建并负责释放
     _commonControl = controller ?? FloatingCommonController();
     _listenerController = FloatingListenerController();
     _floatingView = FloatingView(
       child,
       _floatingData,
-      _params,
+      param,
       _listenerController,
       _commonControl,
       _log,
