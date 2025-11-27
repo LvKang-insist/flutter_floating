@@ -65,8 +65,8 @@ packages:
   flutter_floating:
     dependency: "direct main"
     description:
-      path: "/Users/lvkang/StudioProjects/flutter_floating"
-      relative: false
+      path: ".."
+      relative: true
     source: path
     version: "1.1.2"
   flutter_lints:

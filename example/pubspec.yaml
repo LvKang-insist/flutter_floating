@@ -26,7 +26,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_floating:
-    path: /Users/lvkang/StudioProjects/flutter_floating
+    path: ..
 
   cupertino_icons: ^1.0.8
   get: ^4.7.2
@@ -42,4 +42,3 @@ dev_dependencies:
 flutter:
 
   uses-material-design: true
-
