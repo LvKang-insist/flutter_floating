@@ -3,6 +3,8 @@ import 'package:flutter_floating/floating/assist/floating_common_params.dart';
 import 'package:flutter_floating/floating/assist/floating_edge_type.dart';
 import 'package:flutter_floating/floating/floating_overlay.dart';
 
+
+///页面内使用
 class InternalFloatingPage extends StatefulWidget {
   const InternalFloatingPage({super.key});
 
@@ -35,5 +37,11 @@ class _InternalFloatingPageState extends State<InternalFloatingPage> {
         children: [floating.getFloating()],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    floating.dispose();
   }
 }

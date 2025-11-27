@@ -50,12 +50,28 @@ class FloatingManager {
   closeFloating(Object key) {
     var floating = _floatingCache[key];
     floating?.close();
-    _floatingCache.remove(key);
   }
 
   ///关闭所有的 [FloatingOverlay]
   closeAllFloating() {
     _floatingCache.forEach((key, value) => value.close());
+    _floatingCache.clear();
+  }
+
+  ///释放 [key] 对应的 [FloatingOverlay]
+  disposeFloating(Object key) {
+    var floating = _floatingCache[key];
+    floating?.close();
+    floating?.dispose();
+    _floatingCache.remove(floating);
+  }
+
+  ///释放所有 [FloatingOverlay]
+  disposeAllFloating() {
+    _floatingCache.forEach((key, value) {
+      value.close();
+      value.dispose();
+    });
     _floatingCache.clear();
   }
 

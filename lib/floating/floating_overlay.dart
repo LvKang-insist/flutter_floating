@@ -41,6 +41,8 @@ class FloatingOverlay implements FloatingBase {
   /// 对外可读的隐藏状态
   bool get isHidden => _isHidden;
 
+  bool _dispose = false;
+
   ///[child]需要悬浮的 widget
   ///
   ///[top],[left],[left],[bottom],[position] 对应 [slideType]，设置与起始点的距离
@@ -81,6 +83,10 @@ class FloatingOverlay implements FloatingBase {
   ///此方法配合 [close]方法进行使用
   open(BuildContext context) {
     if (_isShowing) return;
+    if(_dispose){
+      _log.log('open:floating has been destroyed, please recreate it using FloatingOverlay/floatingManager.createFloating.');
+      return;
+    }
     final OverlayState? overlay = Overlay.of(context);
     if (overlay == null) {
       _log.log('open: Overlay.of(context) returned null, cannot insert floating overlay.');
@@ -107,7 +113,7 @@ class FloatingOverlay implements FloatingBase {
     _isHidden = false;
     _notifyClose();
     // 注意：close() 仅移除 Overlay（保留状态与资源），若需要释放 controller/listeners
-    // 请在确定不再使用时调用 dispose() 方法。这样可以避免 close 导致外部 controller 被误释放。
+    // 请在确定不再使用时调用 dispose() 方法。
   }
 
   /// 释放内部资源：清空监听器并释放内部创建的 controller（如果有）
@@ -119,6 +125,7 @@ class FloatingOverlay implements FloatingBase {
       clearFloatingListeners();
     } catch (_) {}
     try {
+      _dispose = true;
       _commonControl.dispose();
     } catch (_) {}
   }

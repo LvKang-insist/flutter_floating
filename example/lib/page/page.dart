@@ -40,7 +40,7 @@ class _CustomPageState extends State<CustomPage> {
                 style: TextStyle(fontSize: 30),
               ),
               onTap: () {
-                floatingManager.getFloating("1").close();
+                floatingManager.getFloating("key_1").close();
               },
             ),
           ],

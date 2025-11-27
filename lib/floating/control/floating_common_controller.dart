@@ -62,7 +62,7 @@ class FloatingCommonController {
   Future<void> setDragEnable(bool enable) =>
       _emitCommand(ControllerEnumType.setDragEnable, value: enable);
 
-  /// 设置宽高以适应悬浮窗位置
+  /// 设置宽高以适应悬浮窗位置，在悬浮窗宽高改变时调用
   /// [width]：宽度
   /// [height]：高度
   /// 在即将修改大小时，请调用此方法通知悬浮窗进行大小调整，以自适应悬浮窗位置。
@@ -78,13 +78,6 @@ class FloatingCommonController {
   void autoSnapEdge({SnapEdgeType type = SnapEdgeType.snapEdgeAuto}) =>
       _commandController.add(_ControllerCommand(ControllerEnumType.autoEdge, value: type));
 
-  /// 设置滑动时间，单位毫秒（同步命令）
-  void scrollTime(int millis) =>
-      _commandController.add(_ControllerCommand(ControllerEnumType.scrollTime, value: millis));
-
-  /// 从当前位置偏移[offset]的位置滑动
-  Future<void> scrollBy(double x, double y) =>
-      _emitCommand(ControllerEnumType.scrollBy, value: FPosition(x, y));
 
   /// 获取吸附后回弹至与边缘的距离
   Future<double> getSnapToEdgeSpace() async {
@@ -114,6 +107,14 @@ class FloatingCommonController {
   /// 注意3：如果当前位置不在边缘 和 snapToEdgeSpace 位置，调用此方法不会有任何效果
   Future<void> scrollSnapToEdgeSpaceToggle() =>
       _emitCommand(ControllerEnumType.scrollSnapToEdgeSpaceToggle);
+
+  /// 设置滑动时间，单位毫秒（同步命令）
+  void scrollTime(int millis) =>
+      _commandController.add(_ControllerCommand(ControllerEnumType.scrollTime, value: millis));
+
+  /// 从当前位置偏移[offset]的位置滑动
+  Future<void> scrollBy(double x, double y) =>
+      _emitCommand(ControllerEnumType.scrollBy, value: FPosition(x, y));
 
   /// 从当前滑动到距离顶部[top]的位置
   Future<void> scrollTop(double top) => _emitCommand(ControllerEnumType.scrollTop, value: top);

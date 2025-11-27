@@ -36,13 +36,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  FloatingOverlay floating = floatingManager.createFloating(
-    "1",
+ late FloatingOverlay floating = floatingManager.createFloating(
+    "key_1",
     FloatingOverlay(
       const FloatingIcon(),
       slideType: FloatingEdgeType.onRightAndTop,
-      right: 0,
-      // params: FloatingParams(snapToEdgeSpace: -20),
+      right: -20,
+      params: FloatingParams(snapToEdgeSpace: -20),
       top: 100,
     ),
   );
@@ -81,9 +81,9 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             Spacer(),
             ButtonWidget(
-              text: "显示/关闭左上角没有回弹的悬浮窗",
+              text: "显示/关闭悬浮窗",
               callback: () {
-                var floating = floatingManager.getFloating("1");
+                var floating = floatingManager.getFloating("key_1");
                 floating.isShowing ? floating.close() : floating.open(context);
               },
             ),
@@ -174,6 +174,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
+    floatingManager.getFloating("key_1").dispose();
+    floating.dispose();
     super.dispose();
   }
 }

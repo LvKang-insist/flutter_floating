@@ -24,7 +24,7 @@ class _FloatingIconState extends State<FloatingIcon> {
   @override
   void initState() {
     super.initState();
-    var one = floatingManager.getFloating('1');
+    var one = floatingManager.getFloating('key_1');
     var listener = FloatingEventListener()
       ..openListener = () {
          com.content.value = "打开";
