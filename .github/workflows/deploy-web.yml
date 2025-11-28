@@ -82,6 +82,26 @@ jobs:
             cp -a example/build/web/. "$DEPLOY_DIR/"
           fi
 
+      # 自动设置 index.html 的 <base href> 为仓库子路径（例如 /flutter_floating/），保证 Pages 子路径下资源路径正确
+      - name: Set base href to repo subpath
+        run: |
+          # 只有在 deploy_web/index.html 存在时修改
+          if [ -f "deploy_web/index.html" ]; then
+            repo="${GITHUB_REPOSITORY##*/}"
+            base="/${repo}/"
+            echo "Setting base href to ${base} in deploy_web/index.html"
+
+            # 如果已有 base 标签则替换其值
+            if grep -qi '<base[[:space:]]\+href=' deploy_web/index.html; then
+              sed -i "s#<base\s\+href=\"[^\"]*\"#<base href=\"${base}\"#Ig" deploy_web/index.html || true
+            else
+              # 否则在 <head> 标签后插入 base 标签（非破坏式）
+              sed -i "0,/<head/ s#<head>#<head>\n<base href=\"${base}\">#I" deploy_web/index.html || true
+            fi
+          else
+            echo "deploy_web/index.html not found; skipping base href set"
+          fi
+
       # 推送到指定分支 master-gh-pages（使用 actions-gh-pages action）
       - name: Deploy to master-gh-pages
         uses: peaceiris/actions-gh-pages@v3
