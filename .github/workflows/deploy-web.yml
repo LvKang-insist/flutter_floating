@@ -16,6 +16,8 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest # 在 ubuntu 上运行 job
+    env:
+      BASE_PATH: '/flutter_floating/web/'
     # 每个 jobs 可以将需要执行的内容划分为不同步骤
     steps:
       # 检出代码；persist-credentials: true 允许后续使用 GITHUB_TOKEN 推送变更
@@ -77,14 +79,28 @@ jobs:
           mkdir -p "$WEB_DIR"
 
           # 使用 rsync 做精确镜像到子目录 web（会删除多余文件）；若 rsync 不可用则回退到 cp
-          # 在复制到 deploy 目录前，确保 index.html 中的 base href 指向 repo 子路径 /flutter_floating/（用于 GitHub Pages 子目录部署）
+          # 在复制到 deploy 目录前，确保 index.html 中的 base href 指向 repo 子路径 ${BASE_PATH}（用于 GitHub Pages 子目录部署）
           INDEX_FILE="example/build/web/index.html"
           if [ -f "$INDEX_FILE" ]; then
-            # 将 href="/" 替换为 href="/flutter_floating/"（支持双引号和单引号），并替换 <base href= 的情况
-            sed -i 's#<base href="/"#<base href="/flutter_floating/"#g' "$INDEX_FILE" || true
-            sed -i "s#<base href='/'#<base href='/flutter_floating/'#g" "$INDEX_FILE" || true
-            sed -i 's#href="/"#href="/flutter_floating/"#g' "$INDEX_FILE" || true
-            sed -i "s#href='/'#href='/flutter_floating/'#g" "$INDEX_FILE" || true
+            # 使用可配置的 BASE_PATH，支持双引号和单引号的 href/base 替换
+            sed -i "s#<base href=\"/\"#<base href=\"${BASE_PATH}\"#g" "$INDEX_FILE" || true
+            sed -i "s#<base href='/'#<base href='${BASE_PATH}'#g" "$INDEX_FILE" || true
+            sed -i "s#href=\"/\"#href=\"${BASE_PATH}\"#g" "$INDEX_FILE" || true
+            sed -i "s#href='/'#href='${BASE_PATH}'#g" "$INDEX_FILE" || true
+          fi
+
+          # 额外替换 manifest.json 中的 start_url/scope（若存在），使用 BASE_PATH
+          MANIFEST_FILE="example/build/web/manifest.json"
+          if [ -f "$MANIFEST_FILE" ]; then
+            sed -i "s#\"start_url\": \"/\"#\"start_url\": \"${BASE_PATH}\"#g" "$MANIFEST_FILE" || true
+            sed -i "s#\"scope\": \"/\"#\"scope\": \"${BASE_PATH}\"#g" "$MANIFEST_FILE" || true
+          fi
+
+          # 额外替换 service worker 或其它脚本中的以 "/ 开头的资源路径为 ${BASE_PATH} 开头（若存在）
+          SW_FILE="example/build/web/flutter_service_worker.js"
+          if [ -f "$SW_FILE" ]; then
+            sed -i "s#\"/\\([^\"]\\+\)\"#\"${BASE_PATH}\\1\"#g" "$SW_FILE" || true
+            sed -i "s#'/\\([^']\\+\)'#'${BASE_PATH}\\1'#g" "$SW_FILE" || true
           fi
 
           if command -v rsync >/dev/null 2>&1; then
