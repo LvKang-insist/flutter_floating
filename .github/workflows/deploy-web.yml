@@ -77,31 +77,22 @@ jobs:
           mkdir -p "$WEB_DIR"
 
           # 使用 rsync 做精确镜像到子目录 web（会删除多余文件）；若 rsync 不可用则回退到 cp
+          # 在复制到 deploy 目录前，确保 index.html 中的 base href 指向 repo 子路径 /flutter_floating/（用于 GitHub Pages 子目录部署）
+          INDEX_FILE="example/build/web/index.html"
+          if [ -f "$INDEX_FILE" ]; then
+            # 将 href="/" 替换为 href="/flutter_floating/"（支持双引号和单引号），并替换 <base href= 的情况
+            sed -i 's#<base href="/"#<base href="/flutter_floating/"#g' "$INDEX_FILE" || true
+            sed -i "s#<base href='/'#<base href='/flutter_floating/'#g" "$INDEX_FILE" || true
+            sed -i 's#href="/"#href="/flutter_floating/"#g' "$INDEX_FILE" || true
+            sed -i "s#href='/'#href='/flutter_floating/'#g" "$INDEX_FILE" || true
+          fi
+
           if command -v rsync >/dev/null 2>&1; then
             rsync -a --delete example/build/web/ "$WEB_DIR/"
           else
             cp -a example/build/web/. "$WEB_DIR/"
           fi
 
-      # 自动设置 index.html 的 <base href> 为仓库子路径（例如 /flutter_floating/web/），保证 Pages 子路径下资源路径正确
-      - name: Set base href to repo subpath
-        run: |
-          # 只有在 deploy_web/web/index.html 存在时修改
-          if [ -f "deploy_web/web/index.html" ]; then
-            repo="${GITHUB_REPOSITORY##*/}"
-            base="/${repo}/web/"
-            echo "Setting base href to ${base} in deploy_web/web/index.html"
-
-            # 如果已有 base 标签则替换其值
-            if grep -qi '<base[[:space:]]\+href=' deploy_web/web/index.html; then
-              sed -i "s#<base\s\+href=\"[^\"]*\"#<base href=\"${base}\"#Ig" deploy_web/web.index.html || true
-            else
-              # 否则在 <head> 标签后插入 base 标签（非破坏式）
-              sed -i "0,/<head/ s#<head>#<head>\n<base href=\"${base}\">#I" deploy_web/web/index.html || true
-            fi
-          else
-            echo "deploy_web/web/index.html not found; skipping base href set"
-          fi
 
      
 
