@@ -82,6 +82,54 @@ jobs:
             cp -a example/build/web/. "$DEPLOY_DIR/"
           fi
 
+      # 修正绝对路径引用：把以 / 开头的资源引用改为相对引用，并设置 base href 为仓库子路径
+      - name: Fix asset paths for GitHub Pages subpath
+        run: |
+          # 仅在 deploy_web 存在时处理
+          if [ -d "deploy_web" ]; then
+            # 获取仓库名作为子路径（GITHUB_REPOSITORY 形如 owner/repo）
+            repo="${GITHUB_REPOSITORY##*/}"
+            base="/${repo}/"
+
+            # 将 <base href="/"> 替换为 <base href="/repo/">，便于相对路径解析（若 index.html 存在）
+            if [ -f "deploy_web/index.html" ]; then
+              sed -i "s#<base href=\"/\">#<base href=\"${base}\">#g" deploy_web/index.html || true
+            fi
+
+            # 把以 src="/ 开头的绝对引用替换为相对引用 src="./ ；同理处理 href="/ 和 content="0;url=/
+            # 只针对文件类型 HTML/JS/JSON 进行替换
+            find deploy_web -type f \( -name '*.html' -o -name '*.js' -o -name '*.json' \) -print0 | \
+            xargs -0 sed -i \
+              -e 's/src="\//src=".\//g' \
+              -e 's/href="\//href=".\//g' \
+              -e 's/content="0;url=\//content="0;url=.\//g' || true
+
+            echo "Rewrote absolute-leading slash asset paths to relative paths and set base href to ${base}"
+          else
+            echo "deploy_web not found, skipping path fixes"
+          fi
+
+      # 推送到指定分支 master-gh-pages（使用 actions-gh-pages action）
+      - name: Ensure index.html redirects to index.xml
+        run: |
+          # 如果 deploy_web 不存在（构建失败或未创建），创建空目录以避免错误
+          mkdir -p deploy_web
+          # 生成一个临时的 index.html，使访问站点根路径时跳转到 index.xml
+          cat > deploy_web/index.html <<'HTML'
+          <!doctype html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0;url=index.xml">
+            <link rel="canonical" href="index.xml">
+            <title>Redirecting…</title>
+          </head>
+          <body>
+            If you are not redirected, <a href="index.xml">click here</a>.
+          </body>
+          </html>
+          HTML
+
       # 推送到指定分支 master-gh-pages（使用 actions-gh-pages action）
       - name: Deploy to master-gh-pages
         uses: peaceiris/actions-gh-pages@v3
