@@ -2,7 +2,7 @@
 
 ![68747470733a2f2f67697465652e636f6d2f6c766b6e6167696e6973742f7069632d676f2d7069637572652d6265642f7261772f6d61737465722f696d616765732f32303232303231363138343530302e6a706567](https://raw.githubusercontent.com/LvKang-insist/PicGo/main/202206141432981.jpg)
 
-一个轻量、灵活且功能完善的 Flutter 悬浮窗组件（已重构）。
+一个轻量、灵活且功能完善的 Flutter 悬浮窗组件。
 
 本库为你提供可在全局或单页面使用的悬浮窗管理与控制能力，支持拖动、吸附、回弹、位置缓存、回调监听、多指交互及屏幕旋转等常见场景。
 
@@ -20,8 +20,11 @@ dependencies:
 ```bash
 flutter pub get
 ```
+## 示例
 
-示例代码位于仓库的 `example/` 目录，建议先运行示例查看效果与可配置项。
+仓库自带 `example/`，包含多个使用场景.建议先运行示例查看效果与可配置项。
+
+[在线预览](https://knglv.github.io/flutter_floating/web/)
 
 ## 主要特性
 
@@ -65,15 +68,13 @@ void initState() {
 关闭
 
 ```dart
-floating.close
-()
+floating.close()
 ```
 
 销毁
 
 ```dart
-floating.dispose
-()
+floating.dispose()
 ```
 
 ### 页面内使用：
@@ -160,24 +161,6 @@ floatingOne.addFloatingListener(listener);
 ## 日志
 
 创建悬浮窗时通过 `isShowLog` 控制是否打印日志。每个悬浮窗会使用不同的 key 来分组日志，便于调试。
-
-## 示例
-
-仓库自带 `example/`，包含多个使用场景：
-
-- 全局悬浮窗示例
-- 单页面悬浮窗示例
-- 位置偏移，吸附与回弹效果示例
-
-建议直接打开 `example/` 在模拟器或真机上运行观察交互效果。
-
-## 常见问题
-
-- 如何关闭自动吸附？
-    - 将 `isSnapToEdge` 设置为 `false`。
-
-- 如何禁用移动时的透明效果？
-    - 将 `moveOpacity` 设置为 `1.0`。
 
 
 ## 贡献与联系
