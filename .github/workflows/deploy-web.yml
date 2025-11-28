@@ -36,7 +36,16 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          # 使用 latest（或你可以改为固定版本号，例如 '3.13.0'）以避免 action 无法解析 'stable' 通道问题
+          flutter-version: '3.38.3'
+          # 指定通道为 stable（作为说明，action 会使用此参数选择通道）
+          channel: 'stable'
+
+      # 验证 Flutter 安装（打印版本信息便于排查）
+      - name: Verify Flutter
+        run: |
+          echo "== Flutter version =="
+          flutter --version || true
 
       # 获取 Dart/Flutter 依赖
       - name: Flutter pub get
