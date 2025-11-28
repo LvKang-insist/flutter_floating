@@ -1,0 +1,104 @@
+# 将 Flutter Web 构建并推送到指定分支 master-gh-pages
+# 中文注释：此 workflow 会在 push 到 master 时触发，构建 release 模式的 web，然后把 build/web 的内容同步到仓库分支 master-gh-pages（会创建或更新该分支）
+name: Deploy Flutter Web to master-gh-pages
+
+# 触发策略：同时支持自动触发（push 到 master）和手动触发（workflow_dispatch）
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch: {} # 手动触发
+
+# 允许 workflow 使用 GITHUB_TOKEN 提交并推送代码
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # 在 ubuntu 上运行 job
+    # 每个 jobs 可以将需要执行的内容划分为不同步骤
+    steps:
+      # 检出代码；persist-credentials: true 允许后续使用 GITHUB_TOKEN 推送变更
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  #拉取完整历史
+          persist-credentials: true
+
+      # 安装 Java（部分 Flutter/Android 工具链需要 Java）
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      # 安装 Flutter（稳定通道）并缓存以加速后续运行
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+
+      # 获取 Dart/Flutter 依赖
+      - name: Flutter pub get
+        run: |
+          # 在 example 目录下获取依赖（项目的主入口在 example 中）
+          cd example
+          flutter pub get
+
+      # 构建 Flutter Web（release 模式）
+      - name: Build Flutter web (release)
+        run: |
+          # 在 example 目录下构建 release 模式的 web 输出到 example/build/web
+          cd example
+          flutter build web --release
+
+      # 安全替换临时目录并准备推送内容
+      - name: Prepare deploy directory
+        run: |
+          # 确保构建产物存在（使用 example/build/web 路径）
+          if [ ! -d "example/build/web" ]; then
+            echo "Error: example/build/web 不存在，构建可能失败" >&2
+            exit 1
+          fi
+
+          # 使用临时目录整理要提交的内容，避免污染工作树
+          DEPLOY_DIR="deploy_web"
+          rm -rf "$DEPLOY_DIR"
+          mkdir -p "$DEPLOY_DIR"
+
+          # 使用 rsync 做精确镜像（会删除多余文件）；若 rsync 不可用则回退到 cp
+          if command -v rsync >/dev/null 2>&1; then
+            rsync -a --delete example/build/web/ "$DEPLOY_DIR/"
+          else
+            cp -a example/build/web/. "$DEPLOY_DIR/"
+          fi
+
+      # 推送到指定分支 master-gh-pages（使用 actions-gh-pages action）
+      - name: Deploy to master-gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          # 使用仓库的 GITHUB_TOKEN 进行推送（默认权限写入 contents）
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # 指定要发布的目录（我们之前把构建内容复制到了 deploy_web）
+          publish_dir: ./deploy_web
+          # 指定目标发布分支
+          publish_branch: master-gh-pages
+          # 如果你希望在目标分支创建孤儿提交以覆盖历史，可以启用下行选项（默认关闭）
+          # force_orphan: true
+          # 可选：自定义提交作者
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+
+      # 清理临时目录（可选）
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf deploy_web
+
+      # 可选：输出部署信息
+      - name: Show deployed info
+        if: always()
+        run: |
+          echo "Deployed to branch master-gh-pages via actions-gh-pages"
+          # 不能直接在 runner 中查看远程分支内容而不再次 fetch；仅打印成功信息
+          echo "Done"
