@@ -47,8 +47,11 @@ class FloatingOverlay implements FloatingBase {
   ///
   ///[top],[left],[left],[bottom],[position] 对应 [slideType]，设置与起始点的距离
   ///例如设置[slideType]为[FloatingEdgeType.onRightAndBottom]，则需要传入[bottom]和[right]
-  ///设置 [slideType]为 [FloatingEdgeType.onPoint] 则需要传入 [position]
-  /// [logKey]设置 [FloatingLog] 标识
+  ///[logKey]设置 [FloatingLog] 标识
+  ///[position] 当[slideType]为 [FloatingEdgeType.onPoint] 传入
+  ///[params] 配置参数集合，按需传入
+  ///[controller] 通用控制器，提供显示/隐藏，设置偏移，吸附等等。
+  ///内部默认会创建，通过[FloatingOverlay.controller]获取即可。也可自行创建传入即可。
   ///
   FloatingOverlay(
     Widget child, {

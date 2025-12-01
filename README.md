@@ -2,7 +2,7 @@
 
 # flutter_floating
 
-一句话简介：轻量且可全局管理的 Flutter 悬浮窗组件，支持拖拽、吸附、位置缓存、多指交互与屏幕旋转适配，适合悬浮工具、快捷入口与悬浮播放器等场景。
+轻量且可全局管理的 Flutter 悬浮窗组件，支持拖拽、吸附、位置缓存、多指交互与屏幕旋转适配，适合悬浮工具、快捷入口与悬浮播放器等场景。
 
 快速预览：
 
@@ -31,10 +31,19 @@ dependencies:
 flutter pub get
 ```
 
+## 主要特性（按场景说明）
+
+- 全局/页面双模式：可通过 `FloatingManager` 全局管理多个悬浮窗，或在单页面内以 `Stack` 插入。
+- 灵活吸附与回弹：可配置吸附方向、吸附距离（支持负值超出屏幕）、吸附速度与自动吸附开关。
+- 位置控制与缓存：通过代码调整偏移，支持启用/禁用位置缓存（打开/关闭保持位置）。
+- 完善事件回调：按下/移动/抬起/移动结束/打开/关闭等回调，便于埋点或自定义交互。
+- 可配置可拖拽性与隐藏策略：运行时切换是否允许拖动、动态隐藏/显示、动画期间位置自适配。
+- 运行中可手动设置偏移位置，吸附位置，以及吸附边缘切换等等
+- 禁止滑动区域支持：可指定顶部/底部或自定义区域为不可拖动区域。
+- 自适应屏幕旋转与窗口变化：在旋转或窗口尺寸变化时保证位置合理。
+
 ## 快速开始（最小示例）
-
-将在页面内创建并自动打开一个悬浮窗：
-
+### 全局 floating
 ```dart
 late FloatingOverlay floating = FloatingOverlay(
   const FloatingIcon(),
@@ -52,39 +61,80 @@ void initState() {
   });
 }
 
-@override
-void dispose() {
-  floating.dispose();
-  super.dispose();
-}
+//关闭
+floating.close()
+
+//销毁
+floating.dispose()
 ```
 
+
+### 单页面使用
+将在页面内创建并自动打开一个悬浮窗：
+
+```dart
+late FloatingOverlay floating = FloatingOverlay(
+  const FloatingIcon(),
+  slideType: FloatingEdgeType.onRightAndTop,
+  right: -20,
+  params: FloatingParams(snapToEdgeSpace: -20),
+  top: 100,
+);
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Stack(
+      fit: StackFit.expand,
+      children: [floating.getFloating()],
+    ),
+  );
+}
+
+@override
+void dispose() {
+  super.dispose();
+  floating.dispose();
+}
+```
+## 全局创建及管理
+
+```dart
+floatingManager.createFloating(
+    "key_1",
+    FloatingOverlay(
+      const FloatingIcon(),
+      slideType: FloatingEdgeType.onRightAndTop,
+      right: -20,
+      params: FloatingParams(snapToEdgeSpace: -20),
+      top: 100,
+    ),
+);
+
+//获取
+floatingManager.getFloating("key_1");
+//关闭
+floatingManager.closeFloating("key_1");
+//销毁
+floatingManager.disposeFloating("key_1");
+//....
+```
+
+
 更多示例请查看仓库 `example/`。
-
-## 主要特性（按场景说明）
-
-- 全局/页面双模式：可通过 `FloatingManager` 全局管理多个悬浮窗，或在单页面内以 `Stack` 插入。
-- 灵活吸附与回弹：可配置吸附方向、吸附距离（支持负值超出屏幕）、吸附速度与自动吸附开关。
-- 位置控制与缓存：通过代码调整偏移，支持启用/禁用位置缓存（打开/关闭保持位置）。
-- 完善事件回调：按下/移动/抬起/移动结束/打开/关闭等回调，便于埋点或自定义交互。
-- 可配置可拖拽性与隐藏策略：运行时切换是否允许拖动、动态隐藏/显示、动画期间位置自适配。
-- 禁止滑动区域支持：可指定顶部/底部或自定义区域为不可拖动区域。
-- 自适应屏幕旋转与窗口变化：在旋转或窗口尺寸变化时保证位置合理。
 
 ## API 快速索引
 
 - [`FloatingOverlay`](https://github.com/kngLv/flutter_floating/blob/master/lib/floating/floating_overlay.dart)：页面内浮窗封装，创建/打开/关闭/定位单个悬浮窗的入口（适合局部使用）。
 - [`FloatingManager`](https://github.com/kngLv/flutter_floating/blob/master/lib/floating/manager/floating_manager.dart)：全局管理器，用于创建、获取、关闭和销毁全局悬浮窗（通过 key 管理）。
 - [`FloatingCommonController`](https://github.com/kngLv/flutter_floating/blob/master/lib/floating/control/floating_common_controller.dart)：通用控制器，提供显示/隐藏、移动、设置位置、吸附与动画控制等 API，适合代码层面动态控制悬浮窗行为。
-- [`FloatingListenerController`](https://github.com/kngLv/flutter_floating/blob/master/lib/floating/control/floating_listener_controller.dart)：事件监听控制器，方便注册/解绑按下、移动、抬起、打开、关闭等回调。
 - [`FloatingParams`](https://github.com/kngLv/flutter_floating/blob/master/lib/floating/assist/floating_common_params.dart)：配置参数集合，控制吸附、缓存、透明度、边距、回弹与可拖拽性等行为。
 - [`FloatingListener`](https://github.com/kngLv/flutter_floating/blob/master/lib/floating/listener/event_listener.dart)：事件回调容器，便于将多个回调以对象形式注册到悬浮窗上。
-- [`FloatingCommonController` 示例`](https://github.com/kngLv/flutter_floating/blob/master/lib/floating/control/floating_common_controller.dart#L1)：在控制器源码中查看常用方法与示例用法（直接跳转到文件）。
 
 示例：添加监听器
 
 ```text
-var listener = FloatingListener()
+var listener = FloatingEventListener()
   ..openListener = () => print('open')
   ..closeListener = () => print('close')
   ..downListener = (x, y) => print('down: \$x,\$y')
@@ -107,6 +157,11 @@ flutter run -d <device>
 ```
 
 2. 在线预览（Web）： https://knglv.github.io/flutter_floating/web/
+
+
+## 常见问题
+[常见问题以及解决办法](https://github.com/kngLv/flutter_floating/blob/master/QA.md)
+
 
 ## 兼容性
 
