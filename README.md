@@ -10,6 +10,11 @@
 
 ---
 
+## English documentation
+If you prefer English, see the translated docs:
+- [README_EN.md](README_EN.md) — full English README (translated)
+- [QA_EN.md](QA_EN.md) — English FAQ (translated)
+
 ## 为什么选择本库
 
 - 轻量无侵入：仅通过 `FloatingOverlay` 或 `FloatingManager` 即可在页面或全局插入悬浮窗。
